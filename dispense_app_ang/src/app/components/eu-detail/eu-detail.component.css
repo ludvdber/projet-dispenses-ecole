@@ -1,0 +1,39 @@
+.ue-description {
+  white-space: pre-line;
+  font-size: 1.2rem;
+  line-height: 1.7;
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.acquis-panel {
+  margin-top: 1.5rem;
+}
+
+.acquis-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.acquis-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.acquis-item:last-child {
+  border-bottom: none;
+}
+
+.acquis-text {
+  flex: 1;
+  line-height: 1.5;
+}

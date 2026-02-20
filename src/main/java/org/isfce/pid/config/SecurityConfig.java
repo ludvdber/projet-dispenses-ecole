@@ -1,0 +1,72 @@
+package org.isfce.pid.config;
+
+import java.util.Arrays;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+@Configuration
+@EnableMethodSecurity
+public class SecurityConfig {
+
+	@Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
+	private String keySetUri;
+
+	private final KeycloakJwtConverter converter;
+
+	// constructeur qui injecte le convertisseur jwt vers security context
+	public SecurityConfig(KeycloakJwtConverter converter) {
+		super();
+		this.converter = converter;
+	}
+
+	@Bean
+	@Profile("dev")
+	WebSecurityCustomizer webSecurityCustomizer() {
+		return (web) -> web.ignoring().requestMatchers("/h2/**");
+	}
+
+	@Bean
+	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		http.sessionManagement(t -> t.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+		http.csrf(c -> c.disable());
+		http.cors(cors -> cors.configurationSource(corsConfigurationSource()))		
+				.oauth2ResourceServer(
+					//Version en utilisant le certificat en local
+					//c -> c.jwt(j->j.jwtAuthenticationConverter(converter))); 
+					//Version où le certificat est recherché sur Keycloak
+					c-> c.jwt(j ->j.jwkSetUri(keySetUri).jwtAuthenticationConverter(converter)));
+		http.authorizeHttpRequests(
+				c -> c.requestMatchers("/api/ue/sections","/api/ue/liste","/api/ue/detail/*")
+				                      .hasAnyRole("ETUDIANT","ADMIN")
+				.requestMatchers(HttpMethod.DELETE,"/api/ue/**/delete").hasAnyRole("ADMIN")
+				.requestMatchers(HttpMethod.POST, "/api/ue/add").hasAnyRole("ADMIN")
+				.anyRequest().authenticated());
+
+		return http.build();
+	}
+
+	//A paramètrer par la suite pour spécifier les CrossOrigin
+	@Bean
+	CorsConfigurationSource corsConfigurationSource() {
+		CorsConfiguration configuration = new CorsConfiguration();
+		configuration.setAllowedOrigins(Arrays.asList("*"));
+		configuration.setAllowedMethods(Arrays.asList("*"));
+		configuration.setAllowedHeaders(Arrays.asList("*"));
+		configuration.setExposedHeaders(Arrays.asList("*"));
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", configuration);
+		return source;
+	}
+
+}

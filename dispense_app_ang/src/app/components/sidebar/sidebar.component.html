@@ -1,0 +1,17 @@
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav #drawer class="sidenav" fixedInViewport [opened]="false" [mode]="'over'">
+
+    <mat-toolbar>Menu</mat-toolbar>
+    <mat-nav-list>
+      <a mat-list-item routerLink="/home"><mat-icon>home</mat-icon>Home</a>
+        <a mat-list-item routerLink="/ues"><mat-icon>menu-book</mat-icon>Sections</a>
+        <hr>
+        <a mat-list-item routerLink="/profile"><mat-icon>person</mat-icon>Profile</a>
+        <hr>
+    </mat-nav-list>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <app-menu></app-menu>
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

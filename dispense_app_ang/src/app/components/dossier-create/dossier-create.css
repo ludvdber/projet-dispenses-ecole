@@ -1,0 +1,14 @@
+.dossier-card {
+  max-width: 600px;
+  margin: 24px auto;
+}
+
+.full-width {
+  width: 100%;
+}
+
+mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

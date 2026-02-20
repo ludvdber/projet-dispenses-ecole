@@ -1,0 +1,16 @@
+.menu {
+  display: flex;
+  justify-content: space-between;
+  background: #e1e1e1;
+  padding: 1px;
+  color: #4c3c1c;
+  align-items: center;
+  gap: 10px;
+}
+
+.actions {
+  display: flex;
+  justify-content: end;
+  padding: 5px 10px;
+}
+

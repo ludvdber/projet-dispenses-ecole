@@ -1,0 +1,28 @@
+# Compiled output
+/dist/
+/tmp/
+/out-tsc/
+
+# Dependencies
+/node_modules/
+
+# Angular cache
+/.angular/
+
+# Logs
+*.log
+
+# IDEs
+.idea/
+.project
+.classpath
+.settings/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# System files
+.DS_Store
+Thumbs.db

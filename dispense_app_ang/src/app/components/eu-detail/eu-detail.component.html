@@ -1,0 +1,41 @@
+@if (ue()) {
+  <mat-card>
+    <mat-card-title>{{ ue()!.nom }}</mat-card-title>
+    <mat-card-content>
+
+      <p><strong>Code :</strong> {{ ue()!.ref }}</p>
+
+      <p><strong>Description :</strong></p>
+      <p class="ue-description">{{ ue()!.prgm }}</p>
+
+      @if (isLoading()) {
+        <div class="spinner-container">
+          <mat-spinner diameter="36"></mat-spinner>
+        </div>
+      }
+
+      @if (ueDetail(); as detail) {
+        <mat-expansion-panel class="acquis-panel">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              Acquis d'apprentissage ({{ detail.acquis.length }})
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <ul class="acquis-list">
+            @for (acquis of detail.acquis; track acquis.num) {
+              <li class="acquis-item">
+                <span class="acquis-text">{{ acquis.num }}. {{ acquis.acquis }}</span>
+                <mat-chip-set>
+                  <mat-chip>{{ acquis.pourcentage }}&nbsp;%</mat-chip>
+                </mat-chip-set>
+              </li>
+            }
+          </ul>
+
+        </mat-expansion-panel>
+      }
+
+    </mat-card-content>
+  </mat-card>
+}

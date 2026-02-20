@@ -1,0 +1,59 @@
+### Build ###
+build/
+*.class
+
+### Gradle ###
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+### Logs ###
+*.log
+
+### STS / Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### H2 Database ###
+*.mv.db
+*.trace.db
+
+### Certificats (clés privées, keystores) ###
+src/main/resources/certificats/*.pem
+src/main/resources/certificats/*.p12
+src/main/resources/certificats/*.jks
+src/main/resources/certificats/*.crt
+src/main/resources/certificats/*.key
+
+### Angular frontend ###
+dispense_app_ang/node_modules/
+dispense_app_ang/.angular/
+dispense_app_ang/dist/
+dispense_app_ang/.cache/
+
+### Misc ###
+HELP.md
