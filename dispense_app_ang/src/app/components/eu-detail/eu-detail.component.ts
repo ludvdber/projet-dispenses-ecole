@@ -1,19 +1,21 @@
-import {Component, effect, inject, input, signal} from '@angular/core';
-import {MatCard, MatCardContent, MatCardTitle} from '@angular/material/card';
-import {MatProgressSpinner} from '@angular/material/progress-spinner';
+import {Component, computed, inject, input} from '@angular/core';
+import {rxResource} from '@angular/core/rxjs-interop';
+import {MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle} from '@angular/material/card';
+import {MatIcon} from '@angular/material/icon';
+import {MatProgressBar} from '@angular/material/progress-bar';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {MatChip, MatChipSet} from '@angular/material/chips';
 import {Ue} from '../../model/ue';
-import {UeFullDto} from '../../model/ue-full-dto';
 import {DispenseService} from '../../services/dispense.service';
+import {of} from 'rxjs';
 
 /**
  * Affiche le détail d'une UE sélectionnée, incluant son programme
  * et la liste complète de ses acquis d'apprentissage chargés depuis
  * GET /api/ue/detail/{code}.
  *
- * Utilise un InputSignal Angular 21 et un effect() pour recharger
- * automatiquement le détail lorsque l'UE change.
+ * Utilise rxResource Angular 21 pour recharger automatiquement
+ * le détail lorsque l'UE change via InputSignal.
  *
  * @author Ludovic
  */
@@ -22,9 +24,12 @@ import {DispenseService} from '../../services/dispense.service';
   standalone: true,
   imports: [
     MatCard,
+    MatCardHeader,
     MatCardTitle,
+    MatCardSubtitle,
     MatCardContent,
-    MatProgressSpinner,
+    MatIcon,
+    MatProgressBar,
     MatExpansionModule,
     MatChip,
     MatChipSet,
@@ -38,31 +43,18 @@ export class EuDetailComponent {
 
   private dispenseService = inject(DispenseService);
 
-  /** Détail complet de l'UE (acquis inclus), null tant que non chargé. */
-  ueDetail = signal<UeFullDto | null>(null);
+  /** Charge le détail complet de l'UE dès que l'input change */
+  private detailResource = rxResource({
+    params: () => this.ue(),
+    stream: ({params: currentUe}) => {
+      if (!currentUe) return of(undefined);
+      return this.dispenseService.getUeDetail(currentUe.code);
+    },
+  });
 
-  /** Indique qu'un chargement HTTP est en cours. */
-  isLoading = signal(false);
+  /** Détail complet de l'UE (acquis inclus), undefined tant que non chargé */
+  ueDetail = computed(() => this.detailResource.value());
 
-  constructor() {
-    // Réagit automatiquement à chaque changement de l'input signal ue()
-    effect(() => {
-      const currentUe = this.ue();
-      if (currentUe) {
-        this.isLoading.set(true);
-        this.ueDetail.set(null);
-        this.dispenseService.getUeDetail(currentUe.code).subscribe({
-          next: detail => {
-            this.ueDetail.set(detail);
-            this.isLoading.set(false);
-          },
-          error: () => {
-            this.isLoading.set(false);
-          },
-        });
-      } else {
-        this.ueDetail.set(null);
-      }
-    });
-  }
+  /** Vrai pendant le chargement HTTP */
+  isLoading = computed(() => this.detailResource.isLoading());
 }

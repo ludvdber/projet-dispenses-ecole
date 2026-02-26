@@ -1,2 +1,21 @@
-<button matBadge={{nbDossier().enCours}} (click)="creeDossier()" class="badge-stat" matBadgeSize="medium" matBadgeColor="accent" matBadgeOverlap="true" mat-raised-button >En Cours</button>
-<button matBadge={{nbDossier().traite}}  class="badge-stat" matBadgeSize="medium" matBadgeColor="accent" matBadgeOverlap="true" mat-flat-button >Traité</button>
+<div class="stat-group">
+  <button mat-stroked-button
+          [matBadge]="enCours()"
+          matBadgeSize="small"
+          matBadgeColor="primary"
+          matBadgeOverlap="true"
+          matTooltip="Créer un nouveau dossier"
+          [disabled]="!canCreate()"
+          (click)="creeDossier()">
+    En cours
+  </button>
+
+  <button mat-stroked-button
+          [matBadge]="traite()"
+          matBadgeSize="small"
+          matBadgeColor="accent"
+          matBadgeOverlap="true"
+          disabled>
+    Traités
+  </button>
+</div>

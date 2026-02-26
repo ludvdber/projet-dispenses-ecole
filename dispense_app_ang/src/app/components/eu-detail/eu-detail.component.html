@@ -1,20 +1,29 @@
-@if (ue()) {
+@let currentUe = ue();
+@if (currentUe) {
   <mat-card>
-    <mat-card-title>{{ ue()!.nom }}</mat-card-title>
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="ue-icon">menu_book</mat-icon>
+      <mat-card-title>{{ currentUe.nom }}</mat-card-title>
+      <mat-card-subtitle>{{ currentUe.ref }}</mat-card-subtitle>
+    </mat-card-header>
+
     <mat-card-content>
+      <!-- Métadonnées compactes -->
+      <div class="ue-meta">
+        <mat-chip-set>
+          <mat-chip>{{ currentUe.nbPeriodes }} périodes</mat-chip>
+          <mat-chip>{{ currentUe.ects }} ECTS</mat-chip>
+        </mat-chip-set>
+      </div>
 
-      <p><strong>Code :</strong> {{ ue()!.ref }}</p>
-
-      <p><strong>Description :</strong></p>
-      <p class="ue-description">{{ ue()!.prgm }}</p>
+      <p class="ue-description">{{ currentUe.prgm }}</p>
 
       @if (isLoading()) {
-        <div class="spinner-container">
-          <mat-spinner diameter="36"></mat-spinner>
-        </div>
+        <mat-progress-bar mode="indeterminate" />
       }
 
-      @if (ueDetail(); as detail) {
+      @let detail = ueDetail();
+      @if (detail) {
         <mat-expansion-panel class="acquis-panel">
           <mat-expansion-panel-header>
             <mat-panel-title>
@@ -32,10 +41,8 @@
               </li>
             }
           </ul>
-
         </mat-expansion-panel>
       }
-
     </mat-card-content>
   </mat-card>
 }

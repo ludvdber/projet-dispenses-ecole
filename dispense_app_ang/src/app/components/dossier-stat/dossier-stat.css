@@ -1,4 +1,6 @@
-.badge-stat{
-  margin-left: 10px;
-  margin-right: 10px;
+.stat-group {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 8px;
 }

@@ -2,30 +2,18 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 70vh;
+  height: calc(100vh - 128px);
 }
 
 .forbidden-card {
   max-width: 480px;
   width: 100%;
   text-align: center;
-  padding: 2rem;
 }
 
-mat-card-title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-mat-card-content p {
-  color: #555;
-  margin-bottom: 0.5rem;
-}
-
-.forbidden-actions {
-  margin-top: 1.5rem;
+.forbidden-icon {
+  font-size: 40px;
+  width: 40px;
+  height: 40px;
+  color: var(--mat-sys-error);
 }

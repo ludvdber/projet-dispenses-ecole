@@ -1,55 +1,48 @@
+/* Occupe toute la hauteur restante sous le toolbar */
 .section-layout {
-  height: 100vh;
+  height: calc(100vh - 64px);
 }
 
 .ue-list-sidenav {
-  width: 35vw;
-  min-width: 380px;
-  max-width: 500px;
+  width: 280px;
+  border-right: 1px solid var(--mat-sys-outline-variant);
+  overflow-y: auto;
 }
 
-.ue-list-dense .mat-mdc-list-item {
-  padding-top: 4px;
-  padding-bottom: 4px;
+/* Titres des deux panneaux (Sections / UE) */
+.panel-title {
+  margin: 16px 16px 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.ue-empty {
+  padding: 16px;
+  font-style: italic;
+  opacity: 0.6;
 }
 
 .ue-detail-content {
-  padding: 16px;
+  padding: 24px;
+  overflow-y: auto;
 }
 
+/* Placeholder centré quand aucune UE n'est sélectionnée */
 .placeholder {
-  opacity: 0.6;
-  font-style: italic;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  opacity: 0.45;
 }
 
-.section-item {
-  font-weight: 600;
-  font-size: 1.1rem;
-  padding: 12px 16px;
-  background-color: #f5f5f5;
-  margin-bottom: 4px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.section-item:hover {
-  background-color: #e0e0e0;
-}
-
-.section-item.mat-list-item-activated {
-  background-color: #d0d0ff; /* couleur active */
-  color: #000080;
-}
-
-
-
-.ue-item:hover {
-  background-color: #f0f0f0;
-}
-
-.ue-item {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  font-size: 0.95rem; /* un peu plus petit que le texte normal */
+.placeholder-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 12px;
 }

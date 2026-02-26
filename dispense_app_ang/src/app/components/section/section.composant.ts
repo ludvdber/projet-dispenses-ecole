@@ -1,78 +1,78 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, computed, inject, signal} from '@angular/core';
+import {rxResource} from '@angular/core/rxjs-interop';
+import {of} from 'rxjs';
 import {Section} from '../../model/section';
 import {Ue} from '../../model/ue';
 import {DispenseService} from '../../services/dispense.service';
-import {MatDivider, MatList, MatListItem, MatNavList} from '@angular/material/list';
-import {MatTab, MatTabGroup} from '@angular/material/tabs';
+import {MatDivider} from '@angular/material/divider';
+import {MatListItem, MatNavList} from '@angular/material/list';
 import {MatSidenav, MatSidenavContainer, MatSidenavContent} from '@angular/material/sidenav';
+import {MatProgressBar} from '@angular/material/progress-bar';
 import {EuDetailComponent} from '../eu-detail/eu-detail.component';
 import {MatIcon} from '@angular/material/icon';
 
-
+/**
+ * Page de consultation des sections et de leurs UE.
+ * Panneau gauche : liste sections + UE ; panneau droit : détail UE.
+ *
+ * Utilise rxResource pour le chargement réactif des sections et des UE.
+ *
+ * @author Ludovic
+ */
 @Component({
   selector: 'app-section',
   imports: [
-    MatList,
     MatListItem,
+    MatNavList,
     MatSidenav,
     MatSidenavContainer,
     MatSidenavContent,
-    EuDetailComponent,
-    MatNavList,
     MatDivider,
+    MatProgressBar,
+    EuDetailComponent,
     MatIcon,
   ],
   templateUrl: './section.composant.html',
   styleUrl: './section.composant.css',
 })
-export class SectionComposant implements OnInit {
+export class SectionComposant {
+  private dispenseService = inject(DispenseService);
 
-  dispenseService = inject(DispenseService);
+  /** Section sélectionnée par l'utilisateur */
+  selectedSection = signal<Section | undefined>(undefined);
 
-  sections: Section[] = [];
-  selectedSection?: Section;
+  /** UE sélectionnée pour affichage du détail */
+  selectedUe = signal<Ue | undefined>(undefined);
 
-  private uesCache = new Map<string, Ue[]>();//cache
-  ues: Ue[] = [];
-  selectedUe?: Ue;
+  /** Chargement réactif de la liste des sections */
+  sectionsResource = rxResource({
+    stream: () => this.dispenseService.getSections(),
+  });
 
+  /** Liste des sections chargées */
+  sections = computed(() => this.sectionsResource.value() ?? []);
 
-  loadUes(sectionId: string) {
-    this.selectedUe = undefined;
-    if (this.uesCache.has(sectionId)) {
-      this.ues = this.uesCache.get(sectionId)!;
-      return;
-    }
+  /** Chargement réactif des UE — se déclenche à chaque changement de section */
+  uesResource = rxResource({
+    params: () => this.selectedSection(),
+    stream: ({params: section}) => {
+      if (!section) return of([] as Ue[]);
+      return this.dispenseService.getUesBySection(section.code);
+    },
+  });
 
-    this.dispenseService.getUesBySection(sectionId).subscribe({
-      next: data => {
-        this.ues = data;
-        this.uesCache.set(sectionId, data);//mise en cache
-      },
-      error: error => console.error(error)
-    });
-  }
+  /** Liste des UE de la section courante */
+  ues = computed(() => this.uesResource.value() ?? []);
+
+  /** Vrai si les UE sont en cours de chargement */
+  uesLoading = computed(() => this.uesResource.isLoading());
 
   selectSection(section: Section): void {
-    this.selectedSection = section;
-    this.selectedUe = undefined;
-    this.loadUes(section.code);
+    this.selectedSection.set(section);
+    this.selectedUe.set(undefined);
   }
 
   selectUe(ue: Ue): void {
-    this.selectedUe = ue;
-  }
-
-  ngOnInit(): void {
-    this.dispenseService.getSections().subscribe({
-      next: data => {
-        this.sections = data;
-        //précharge le 1èr onglet
-        if (this.sections.length > 0) {
-          this.loadUes(this.sections[0].code);
-        }
-      },
-      error: err => console.error(err)
-    });
+    this.selectedUe.set(ue);
   }
 }

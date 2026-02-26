@@ -3,19 +3,17 @@
 }
 
 .sidenav {
-  width: 200px;
+  width: 240px;
 }
 
-.sidenav .mat-toolbar {
-  background: inherit;
+/* En-tête du drawer */
+.drawer-header {
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font-weight: 500;
 }
 
-.mat-toolbar.mat-primary {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-.app-container {
-  padding: 20px;
+/* Icônes alignées dans les items de navigation */
+.sidenav mat-icon[matListItemIcon] {
+  margin-right: 12px;
 }

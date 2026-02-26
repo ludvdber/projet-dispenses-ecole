@@ -1,25 +1,23 @@
-<header class="brand-name">
-  <nav class="menu">
-    <div class="actions">
-      <button
-        mat-icon-button
-        aria-label="Menu"
-        (click)="toggleMenu()">
-        <mat-icon>menu</mat-icon>
-      </button>
+<mat-toolbar color="primary">
+  <!-- Bouton hamburger pour ouvrir/fermer le drawer -->
+  <button mat-icon-button aria-label="Ouvrir le menu" (click)="toggleMenu()">
+    <mat-icon>menu</mat-icon>
+  </button>
 
-      @if (!authenticated()) {
-        <button mat-icon-button  color="primary"  matTooltip="Login" (click)="login()">
-          <mat-icon>login</mat-icon>
-        </button>
-      } @else {
-        <app-dossier-stat></app-dossier-stat>
-        <button mat-icon-button  color="warn" matTooltip="Logout: {{getUsername()}}" (click)="logout()">
-          <mat-icon>logout</mat-icon>
-        </button>
-      }
-    </div>
-  </nav>
-</header>
+  <span class="brand">Dispenses ISFCE</span>
 
+  <!-- Pousse le reste à droite -->
+  <span class="spacer"></span>
 
+  @if (!authenticated()) {
+    <button mat-icon-button matTooltip="Se connecter" (click)="login()">
+      <mat-icon>login</mat-icon>
+    </button>
+  } @else {
+    <app-dossier-stat />
+    <span class="username">{{ getUsername() }}</span>
+    <button mat-icon-button matTooltip="Se déconnecter" (click)="logout()">
+      <mat-icon>logout</mat-icon>
+    </button>
+  }
+</mat-toolbar>

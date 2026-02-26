@@ -1,8 +1,7 @@
 import {Component, computed, inject, signal} from '@angular/core';
-import {MatCard, MatCardActions, MatCardContent, MatCardTitle} from '@angular/material/card';
+import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle} from '@angular/material/card';
 import {MatIcon} from '@angular/material/icon';
 import {MatError, MatFormField, MatInput, MatLabel} from '@angular/material/input';
-import {ReactiveFormsModule} from '@angular/forms';
 import {MatButton} from '@angular/material/button';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Router} from '@angular/router';
@@ -21,15 +20,16 @@ import {DatePipe} from '@angular/common';
   selector: 'app-dossier-create',
   imports: [
     MatCard,
+    MatCardHeader,
     MatCardTitle,
-    MatIcon,
+    MatCardSubtitle,
     MatCardContent,
+    MatCardActions,
+    MatIcon,
     MatFormField,
     MatLabel,
     MatInput,
-    ReactiveFormsModule,
     MatError,
-    MatCardActions,
     MatButton,
     DatePipe,
   ],

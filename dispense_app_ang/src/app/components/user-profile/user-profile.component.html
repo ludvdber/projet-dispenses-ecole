@@ -1,14 +1,42 @@
-<div class="section">
-  <header>
-    <h1>Welcome, {{ user?.username }}</h1>
-  </header>
-  <main>
-    <section class="profile-card">
-      <h2>Profile Details</h2>
-      <p><strong>Username:</strong> {{ user?.username }}</p>
-      <p><strong>Prénom:</strong> {{ user?.prenom }}</p>
-      <p><strong>Nom:</strong> {{ user?.nom }}</p>
-      <p><strong>Email:</strong> {{ user?.email }}</p>
-    </section>
-  </main>
+<div class="page-container">
+  @if (isLoading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @let profile = user();
+  @if (profile) {
+    <mat-card class="profile-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="profile-avatar">account_circle</mat-icon>
+        <mat-card-title>{{ profile.prenom }} {{ profile.nom }}</mat-card-title>
+        <mat-card-subtitle>{{ profile.username }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="profile-field">
+          <mat-icon>person</mat-icon>
+          <div>
+            <div class="field-label">Prénom</div>
+            <div class="field-value">{{ profile.prenom }}</div>
+          </div>
+        </div>
+        <mat-divider />
+        <div class="profile-field">
+          <mat-icon>badge</mat-icon>
+          <div>
+            <div class="field-label">Nom</div>
+            <div class="field-value">{{ profile.nom }}</div>
+          </div>
+        </div>
+        <mat-divider />
+        <div class="profile-field">
+          <mat-icon>email</mat-icon>
+          <div>
+            <div class="field-label">Email</div>
+            <div class="field-value">{{ profile.email }}</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
 </div>

@@ -1,18 +1,21 @@
 <div class="forbidden-container">
   <mat-card class="forbidden-card">
-    <mat-card-title>
-      <mat-icon color="warn">block</mat-icon>
-      Accès refusé
-    </mat-card-title>
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="forbidden-icon">block</mat-icon>
+      <mat-card-title>Accès refusé</mat-card-title>
+      <mat-card-subtitle>Droits insuffisants</mat-card-subtitle>
+    </mat-card-header>
+
     <mat-card-content>
       <p>Vous ne disposez pas des droits nécessaires pour accéder à cette page.</p>
       <p>Si vous pensez qu'il s'agit d'une erreur, contactez un administrateur.</p>
     </mat-card-content>
-    <div class="forbidden-actions">
-      <button mat-raised-button color="primary" routerLink="/home">
+
+    <mat-card-actions>
+      <button mat-flat-button color="primary" routerLink="/home">
         <mat-icon>home</mat-icon>
         Retour à l'accueil
       </button>
-    </div>
+    </mat-card-actions>
   </mat-card>
 </div>

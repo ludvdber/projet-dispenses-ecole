@@ -1,16 +1,17 @@
-.menu {
-  display: flex;
-  justify-content: space-between;
-  background: #e1e1e1;
-  padding: 1px;
-  color: #4c3c1c;
-  align-items: center;
-  gap: 10px;
+/* Espace flexible entre le branding et les actions */
+.spacer {
+  flex: 1 1 auto;
 }
 
-.actions {
-  display: flex;
-  justify-content: end;
-  padding: 5px 10px;
+.brand {
+  margin-left: 8px;
+  font-size: 1.15rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
+.username {
+  margin: 0 8px;
+  font-size: 0.875rem;
+  opacity: 0.9;
+}

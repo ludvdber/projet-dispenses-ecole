@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {MatCard, MatCardContent, MatCardTitle} from '@angular/material/card';
+import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle} from '@angular/material/card';
 import {MatIcon} from '@angular/material/icon';
 import {RouterLink} from '@angular/router';
 import {MatButton} from '@angular/material/button';
@@ -16,8 +16,11 @@ import {MatButton} from '@angular/material/button';
   standalone: true,
   imports: [
     MatCard,
+    MatCardHeader,
     MatCardTitle,
+    MatCardSubtitle,
     MatCardContent,
+    MatCardActions,
     MatIcon,
     RouterLink,
     MatButton,

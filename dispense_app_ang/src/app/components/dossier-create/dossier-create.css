@@ -1,14 +1,15 @@
 .dossier-card {
   max-width: 600px;
-  margin: 24px auto;
+}
+
+.dossier-icon {
+  font-size: 40px;
+  width: 40px;
+  height: 40px;
+  color: var(--mat-sys-primary);
 }
 
 .full-width {
   width: 100%;
-}
-
-mat-card-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  margin-top: 16px;
 }

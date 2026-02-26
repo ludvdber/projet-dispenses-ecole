@@ -1,44 +1,35 @@
-<mat-card class="dossier-card">
-  <mat-card-title>
-    <mat-icon>folder_open</mat-icon>
-    Création d'un nouveau dossier de dispense
-  </mat-card-title>
+<div class="page-container">
+  <mat-card class="dossier-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="dossier-icon">folder_open</mat-icon>
+      <mat-card-title>Nouveau dossier de dispense</mat-card-title>
+      <mat-card-subtitle>Créé le {{ dateCreation | date:'dd/MM/yyyy' }}</mat-card-subtitle>
+    </mat-card-header>
 
-  <mat-card-content>
+    <mat-card-content>
+      <!-- Objet de la demande -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Objet de la demande</mat-label>
+        <textarea matInput rows="6"
+                  [value]="objetDemande()"
+                  (input)="objetDemande.set($any($event.target).value)"
+                  placeholder="Décrivez votre demande (10 caractères minimum)...">
+        </textarea>
+        @if (!isValid() && objetDemande().length > 0) {
+          <mat-error>
+            Le texte doit détailler l'objet de votre demande
+          </mat-error>
+        }
+      </mat-form-field>
+    </mat-card-content>
 
-    <!-- Date (non modifiable) -->
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Date de création du dossier</mat-label>
-      <input
-        matInput
-        [value]="dateCreation | date:'dd/MM/yyyy'"
-        disabled/>
-    </mat-form-field>
-
-    <!-- Objet de la demande -->
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Objet de la demande</mat-label>
-      <textarea matInput rows="6"
-                [value]="objetDemande()"
-                (input)="objetDemande.set($any($event.target).value)"
-                placeholder="Décrivez votre demande..."
-      >
-      </textarea>
-      @if (!isValid() && objetDemande().length > 0) {
-        <mat-error>
-          Le texte doit détailler l'objet de votre demande
-        </mat-error>
-      }
-    </mat-form-field>
-
-  </mat-card-content>
-
-  <mat-card-actions align="end">
-    <button mat-raised-button color="primary"
-            [disabled]="!isValid() || isSubmitting()"
-            (click)="createDossier()">
-      <mat-icon>add</mat-icon>
-      Créer le dossier
-    </button>
-  </mat-card-actions>
-</mat-card>
+    <mat-card-actions align="end">
+      <button mat-flat-button color="primary"
+              [disabled]="!isValid() || isSubmitting()"
+              (click)="createDossier()">
+        <mat-icon>send</mat-icon>
+        Soumettre le dossier
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

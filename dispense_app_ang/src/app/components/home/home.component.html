@@ -1,1 +1,35 @@
-<p>home.component works!</p>
+<div class="page-container home-page">
+  <mat-card class="welcome-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="welcome-icon">school</mat-icon>
+      <mat-card-title>Bienvenue sur l'application Dispenses</mat-card-title>
+      <mat-card-subtitle>ISFCE — Gestion des demandes de dispense</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <p>
+        Cette plateforme vous permet de consulter les unités d'enseignement (UE)
+        et leurs acquis d'apprentissage, ainsi que de créer et suivre vos demandes de dispense.
+      </p>
+
+      <div class="quick-links">
+        <a mat-stroked-button routerLink="/ues">
+          <mat-icon>menu_book</mat-icon>
+          Parcourir les UE
+        </a>
+
+        @if (authenticated()) {
+          <a mat-stroked-button routerLink="/createDossier">
+            <mat-icon>note_add</mat-icon>
+            Nouveau dossier
+          </a>
+        } @else {
+          <button mat-flat-button (click)="login()">
+            <mat-icon>login</mat-icon>
+            Se connecter
+          </button>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
