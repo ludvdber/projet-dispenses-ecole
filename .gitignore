@@ -55,5 +55,8 @@ dispense_app_ang/.angular/
 dispense_app_ang/dist/
 dispense_app_ang/.cache/
 
+### Claude Code ###
+.claude/
+
 ### Misc ###
 HELP.md
