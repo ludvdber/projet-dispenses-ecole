@@ -1,6 +1,9 @@
 spring:
   application:
     name: projetWebPid2526
+  output:
+    ansi:
+      enabled: always
   main:
     banner-mode: off
   messages:
@@ -38,7 +41,7 @@ spring:
       on-profile:
       - dev
   datasource:
-    url: jdbc:h2:~/PID_DB/pidDB2526
+    url: jdbc:h2:~/PID_DB/pidDB2526Ludovic
     username: sa
     password: 
   sql:
@@ -66,6 +69,8 @@ spring:
 server:
   port: 9090
 logging:
+  pattern:
+    console: "%d{HH:mm:ss} %clr(%-5level) [%thread] %logger{36} : %msg%n"
   level:
     '[org.isfce.pid.controller]': debug
     '[org.hibernate.SQL]': debug
