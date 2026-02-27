@@ -16,6 +16,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/**
+ * Section d'enseignement (ex : INFO, COMPTA) contenant des UE.
+ *
+ * @author Ludovic
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(exclude = "listeUE")

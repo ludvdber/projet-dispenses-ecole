@@ -19,6 +19,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Dossier de demande de dispense d'un étudiant.
+ *
+ * @author Ludovic
+ */
 @Entity(name = "TDOSSIER")
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
@@ -30,14 +35,28 @@ public class Dossier {
 	private Long id;
 
 	@ManyToOne
-	@JoinColumn(name = "FKUSER", nullable = false)
+	@JoinColumn(name = "FK_USER", nullable = false)
 	private final User user;
-	private final LocalDate date;
+
+	@Column(name = "DATE_CREATION", nullable = false)
+	private final LocalDate dateCreation;
+
+	@Column(name = "DATE_SOUMIS", nullable = true)
+	@Setter
+	private LocalDate dateSoumis;
+
 	@Lob
-	@Column(nullable = false)
-	private String objetDemande;//objet de la demande
+	@Column(name = "OBJET_DEMANDE", nullable = true)
+	@Setter
+	private String objetDemande;
+
 	@Setter
 	@Column(nullable = false, length = 30)
 	@Enumerated(EnumType.STRING)
 	private EtatDossier etat;
+
+	@Builder.Default
+	@Column(name = "COMPLET", nullable = false)
+	@Setter
+	private boolean complet = false;
 }

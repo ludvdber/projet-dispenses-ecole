@@ -52,41 +52,24 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
 	testImplementation 'org.springframework.security:spring-security-test'
 	
-	//Tests avec Lombok et MapStruct
+	//Tests avec Lombok
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
-    testAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
-    testAnnotationProcessor "org.projectlombok:lombok-mapstruct-binding:${mapstructBindingVersion}"
     
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
-// Répertoire séparé pour les sources générées des tests (évite le conflit avec les sources principales)
-def generatedTestSources = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/test")
 
-// Configuration pour que STS/Eclipse/IntelliJ détecte le code généré par MapStruct
-sourceSets {
-    main {
-        java.srcDir(generatedSources)
-    }
-    test {
-        java.srcDir(generatedTestSources)
-    }
-}
 
 //Depuis SpringSecurity 6.1, il faut activer ce paramètre à la compilation
 //pour que les expressions avec des paramètres comme "#name" obtiennent une valeur
 // par exemple dans #PreAuthorize(expression...)
-// Note: les deux tâches sont configurées séparément pour éviter que compileJava et
-// compileTestJava écrivent leurs sources générées dans le même répertoire,
-// ce qui causait l'erreur "UEMapperImpl is already defined" dans STS.
 tasks.named('compileJava') {
     options.generatedSourceOutputDirectory.set(generatedSources)
     options.compilerArgs.add("-parameters")
 }
 
 tasks.named('compileTestJava') {
-    options.generatedSourceOutputDirectory.set(generatedTestSources)
     options.compilerArgs.add("-parameters")
 }
 

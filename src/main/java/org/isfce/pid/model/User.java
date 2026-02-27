@@ -12,6 +12,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * Utilisateur de l'application (étudiant ou enseignant).
+ * Données synchronisées depuis Keycloak.
+ *
+ * @author Ludovic
+ */
 @Entity(name = "TUSER")
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
@@ -29,7 +35,7 @@ public class User {
 	private String email;
 	@Column(length = 30, nullable = false)
 	private String nom;
-	@Column(length = 30)
+	@Column(length = 30, nullable = true)
 	private String prenom;
 
 }

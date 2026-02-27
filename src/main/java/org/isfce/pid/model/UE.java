@@ -7,7 +7,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.Min;
@@ -17,6 +16,11 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * Unité d'enseignement (UE) avec ses acquis d'apprentissage.
+ *
+ * @author Ludovic
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder()
@@ -29,7 +33,7 @@ public class UE {
 	private String code;
 	@Column(unique = true, nullable = false, length = 20)
 	private String ref;
-	@Column(nullable = false, length = 50)
+	@Column(nullable = false, length = 100)
 	private String nom;
 	@Column(nullable = false)
 	@Min(value = 1, message = "{err.ue.nbPeriodes}")
@@ -40,13 +44,10 @@ public class UE {
 	@Lob
 	@Column(nullable = false)
 	private String prgm;
-	/*
-	 * Avec ce mapping, la clé étrangère FK_UE sera créée en base de données mais comme un acquis possède un id composé (@EmbeddedId avec le code de l'UE et un numéro), le code de l'UE
-	 * apparaîtra 2 fois en BD.  
-	 */
-	@OneToMany(cascade = {CascadeType.MERGE}, orphanRemoval = true)
-	@JoinColumn(name = "FK_UE", referencedColumnName = "code")
+
+	/** Liste des acquis — relation bidirectionnelle via {@link Acquis#ue} */
+	@OneToMany(mappedBy = "ue", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
 	@Builder.Default
 	private List<Acquis> acquis = new ArrayList<>();
-		
+
 }

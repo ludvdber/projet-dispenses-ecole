@@ -6,6 +6,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -15,6 +18,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Acquis d'apprentissage rattaché à une UE.
+ * Clé primaire composée (FKUE, NUM) via {@link IdAcquis}.
+ *
+ * @author Ludovic
+ */
 @Getter
 @Setter
 @AllArgsConstructor
@@ -23,15 +32,23 @@ import lombok.Setter;
 @Entity(name = "TACQUIS")
 public class Acquis {
 
-	@Embeddable // Record fonctionne à partir de Hibernate 6+
+	/**
+	 * Clé primaire composée : code UE + numéro séquentiel.
+	 */
+	@Embeddable
 	public static record IdAcquis(
-			String fkUE, Integer num) 
+			@Column(name = "FKUE") String fkUE,
+			Integer num)
 	implements Serializable {}
-/*--------------------------------------------------------------*/
-	// Clé primaire composée de (codeUE et num relatif) 
-	//!FKUE sera la clé étrangère de la relation OneToMany (FK_UE doit être identique à codeUE lors d'un insert)
+
 	@EmbeddedId
 	private IdAcquis id;
+
+	/** Relation vers l'UE — réutilise la colonne FKUE de l'@EmbeddedId */
+	@ManyToOne
+	@MapsId("fkUE")
+	@JoinColumn(name = "FKUE")
+	private UE ue;
 
 	@NotBlank
 	@Column(length = 500, nullable = false)
