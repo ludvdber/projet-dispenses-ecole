@@ -76,4 +76,6 @@ tasks.named('compileTestJava') {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	// Java 21+ restreint le chargement dynamique d'agents (Mockito/ByteBuddy)
+	jvmArgs '-XX:+EnableDynamicAgentLoading'
 }
