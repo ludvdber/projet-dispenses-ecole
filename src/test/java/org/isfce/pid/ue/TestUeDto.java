@@ -27,7 +27,7 @@ public class TestUeDto {
 	void testAcquis() {
 		AcquisDto aq1D = new AcquisDto("IPAP", 1, "TXT", 20);
 		Acquis aq2 = mapper.toAcquis(aq1D);
-		Acquis aq1 = new Acquis(new IdAcquis("IPAP", 1), "TXT", 20);
+		Acquis aq1 = new Acquis(new IdAcquis("IPAP", 1), null, "TXT", 20);
 		assertEquals(aq1, aq2);
 	}
 
@@ -36,8 +36,8 @@ public class TestUeDto {
 		// liste Dto
 		AcquisDto aq1D = new AcquisDto("IPAP", 1, "TXT1", 10);
 		AcquisDto aq2D = new AcquisDto("IPAP", 2, "TXT2", 20);
-		Acquis aq1 = new Acquis(new IdAcquis("IPAP", 1), "TXT1", 10);
-		Acquis aq2 = new Acquis(new IdAcquis("IPAP", 2), "TXT2", 20);
+		Acquis aq1 = new Acquis(new IdAcquis("IPAP", 1), null, "TXT1", 10);
+		Acquis aq2 = new Acquis(new IdAcquis("IPAP", 2), null, "TXT2", 20);
 
 		List<AcquisDto> listeDto = new ArrayList<>();
 		listeDto.add(aq1D);
@@ -70,8 +70,8 @@ public class TestUeDto {
 		assertEquals(0, pidLazy.getAcquis().size());
 
 		// Test avec Acquis
-		Acquis aq1 = new Acquis(new IdAcquis("IPID", 1), "TXT1", 10);
-		Acquis aq2 = new Acquis(new IdAcquis("IPID", 2), "TXT2", 20);
+		Acquis aq1 = new Acquis(new IdAcquis("IPID", 1), null, "TXT1", 10);
+		Acquis aq2 = new Acquis(new IdAcquis("IPID", 2), null, "TXT2", 20);
 		pid.getAcquis().add(aq1);
 		pid.getAcquis().add(aq2);
 		

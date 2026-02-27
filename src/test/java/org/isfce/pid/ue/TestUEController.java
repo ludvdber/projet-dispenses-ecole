@@ -34,6 +34,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+@SuppressWarnings("null")
 @SpringBootTest // lance le contexte Spring
 @AutoConfigureMockMvc // Crée un mock mvc
 @ActiveProfiles(profiles = "testU") // active le profile "testU"
@@ -195,11 +196,11 @@ public class TestUEController {
 
 	private static UE creeIPID() {
 		String code = "7534 35 U32 D2";
-		Acquis[] acquis = { new Acquis(new IdAcquis("IPID", 1),
+		Acquis[] acquis = { new Acquis(new IdAcquis("IPID", 1), null,
 				"de produire et défendre un cahier des charges et son dossier technique par rapport à la proposition du chargé de cours",
 				50),
-				new Acquis(new IdAcquis("IPID", 2), "d’implémenter une base de données et l’intégrité des données", 30),
-				new Acquis(new IdAcquis("IPID", 3),
+				new Acquis(new IdAcquis("IPID", 2), null, "d’implémenter une base de données et l’intégrité des données", 30),
+				new Acquis(new IdAcquis("IPID", 3), null,
 						"de déployer et de justifier le site répondant aux consignes figurant dans le cahier des charges",
 						20) };
 

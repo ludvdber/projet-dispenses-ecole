@@ -20,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import jakarta.transaction.Transactional;
 
+@SuppressWarnings("null")
 @ActiveProfiles(value = "testU")
 //@Sql({ "/dataTestU.sql" })
 @SpringBootTest
@@ -34,11 +35,11 @@ class TestDaoUE {
 	@Transactional
 	void getSaveUE() {
 		String code = "7534 35 U32 D2";
-		Acquis[] acquis = { new Acquis(new IdAcquis("IPID", 1),
+		Acquis[] acquis = { new Acquis(new IdAcquis("IPID", 1), null,
 				"de produire et défendre un cahier des charges et son dossier technique par rapport à la proposition du chargé de cours",
 				50),
-				new Acquis(new IdAcquis("IPID", 2), "d’implémenter une base de données et l’intégrité des données", 30),
-				new Acquis(new IdAcquis("IPID", 3),	"de déployer et de justifier le site répondant aux consignes figurant dans le cahier des charges",
+				new Acquis(new IdAcquis("IPID", 2), null, "d’implémenter une base de données et l’intégrité des données", 30),
+				new Acquis(new IdAcquis("IPID", 3), null,	"de déployer et de justifier le site répondant aux consignes figurant dans le cahier des charges",
 				20) };
 
 		String prgm = """
@@ -74,6 +75,8 @@ class TestDaoUE {
 		List<Acquis> liste = new ArrayList<Acquis>(Arrays.asList(acquis));
 		UE pid = UE.builder().code("IPID").ects(9).nbPeriodes(100).nom("PROJET D’INTEGRATION DE DEVELOPPEMENT")
 				.prgm(prgm).ref(code).acquis(liste).build();
+		// Renseigne la relation bidirectionnelle (nécessaire pour @MapsId)
+		liste.forEach(a -> a.setUe(pid));
 
 		// sauvegarde
 		daoUe.save(pid);
@@ -87,7 +90,7 @@ class TestDaoUE {
 		assertEquals(3, pid2.getAcquis().size());
 
 		// ajout d'un acquis
-		Acquis newAcquis = new Acquis(new IdAcquis("IPID", 4),"Test", 5);
+		Acquis newAcquis = new Acquis(new IdAcquis("IPID", 4), pid2,"Test", 5);
 		pid2.getAcquis().add(newAcquis);
 		pid2 = daoUe.save(pid2);
 		// vérifie si Acquis est bien en BD
