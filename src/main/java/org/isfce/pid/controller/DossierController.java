@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @author Ludovic
  */
+@SuppressWarnings("null")
 @RestController
 @RequestMapping(path = "/api/dossier/", produces = "application/json")
 @Slf4j

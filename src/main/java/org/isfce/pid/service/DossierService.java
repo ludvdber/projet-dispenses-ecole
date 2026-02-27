@@ -32,7 +32,7 @@ public class DossierService {
 		if (daoDossier.getNbDossierEnCours(user.getUsername()) > 0) {
 			throw new DossierException("err.dossier.enCours");
 		}
-		Dossier dossier = Dossier.builder().date(LocalDate.now()).etat(EtatDossier.DEMANDE_EN_COURS).user(user)
+		Dossier dossier = Dossier.builder().dateCreation(LocalDate.now()).etat(EtatDossier.DEMANDE_EN_COURS).user(user)
 				.objetDemande(objetDemande).build();
 		dossier = daoDossier.save(dossier);
 		return dossier;

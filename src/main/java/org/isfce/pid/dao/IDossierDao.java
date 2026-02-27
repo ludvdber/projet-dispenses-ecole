@@ -10,19 +10,24 @@ import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+/**
+ * Repository Spring Data pour les dossiers de dispense.
+ *
+ * @author Ludovic
+ */
 public interface IDossierDao extends JpaRepository<Dossier, Long> {
-	List<Dossier> findDossierByUserOrderByDateDesc(User user);
+	List<Dossier> findDossierByUserOrderByDateCreationDesc(User user);
 
-	@Query("from TDOSSIER d where d.user=:user and d.etat<>EtatDossier.CLOTURE")
+	@Query("from TDOSSIER d where d.user=:user and d.etat NOT IN (org.isfce.pid.model.EtatDossier.CLOTURE_ACCORDE, org.isfce.pid.model.EtatDossier.CLOTURE_REFUSE)")
 	Optional<Dossier> findDossierEnCours(@Param("user") User user);
 
 	@NativeQuery("""
-			select count(*) from TDOSSIER d where d.FKUSER=:username and d.etat<>'CLOTURE'
+			select count(*) from TDOSSIER d where d.FK_USER=:username and d.etat NOT IN ('CLOTURE_ACCORDE','CLOTURE_REFUSE')
 						""")
 	int getNbDossierEnCours(@Param("username") String userName);
 
 	@NativeQuery("""
-			select count(*) from TDOSSIER d where d.FKUSER=:username and d.etat='CLOTURE'
+			select count(*) from TDOSSIER d where d.FK_USER=:username and d.etat IN ('CLOTURE_ACCORDE','CLOTURE_REFUSE')
 						""")
 	int getNbDossierCloture(@Param("username") String userName);
 

@@ -4,8 +4,12 @@ import java.time.LocalDate;
 
 import org.isfce.pid.model.EtatDossier;
 
-import jakarta.validation.constraints.NotBlank;
-
-public record DossierDto(Long id, LocalDate date, EtatDossier etat, @NotBlank String objetDemande, UserDto user) {
+/**
+ * DTO pour un dossier de dispense.
+ *
+ * @author Ludovic
+ */
+public record DossierDto(Long id, LocalDate dateCreation, LocalDate dateSoumis,
+		EtatDossier etat, String objetDemande, boolean complet, UserDto user) {
 
 }
