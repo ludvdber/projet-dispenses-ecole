@@ -6,12 +6,19 @@
   @let profile = user();
   @if (profile) {
     <mat-card class="profile-card">
-      <mat-card-header>
-        <mat-icon mat-card-avatar class="profile-avatar">account_circle</mat-icon>
-        <mat-card-title>{{ profile.prenom }} {{ profile.nom }}</mat-card-title>
-        <mat-card-subtitle>{{ profile.username }}</mat-card-subtitle>
-      </mat-card-header>
 
+      <!-- En-tête centré avec avatar -->
+      <div class="profile-header">
+        <div class="avatar-circle">
+          <mat-icon>person</mat-icon>
+        </div>
+        <h2 class="profile-name">{{ profile.prenom }} {{ profile.nom }}</h2>
+        <span class="profile-username">{{ profile.username }}</span>
+      </div>
+
+      <mat-divider />
+
+      <!-- Champs du profil -->
       <mat-card-content>
         <div class="profile-field">
           <mat-icon>person</mat-icon>
@@ -34,6 +41,14 @@
           <div>
             <div class="field-label">Email</div>
             <div class="field-value">{{ profile.email }}</div>
+          </div>
+        </div>
+        <mat-divider />
+        <div class="profile-field">
+          <mat-icon>fingerprint</mat-icon>
+          <div>
+            <div class="field-label">Identifiant</div>
+            <div class="field-value">{{ profile.username }}</div>
           </div>
         </div>
       </mat-card-content>

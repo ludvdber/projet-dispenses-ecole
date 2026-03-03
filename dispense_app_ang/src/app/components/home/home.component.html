@@ -1,35 +1,45 @@
-<div class="page-container home-page">
-  <mat-card class="welcome-card">
-    <mat-card-header>
-      <mat-icon mat-card-avatar class="welcome-icon">school</mat-icon>
-      <mat-card-title>Bienvenue sur l'application Dispenses</mat-card-title>
-      <mat-card-subtitle>ISFCE — Gestion des demandes de dispense</mat-card-subtitle>
-    </mat-card-header>
+<div class="home-page">
+  <section class="hero">
+    <mat-icon class="hero-icon">school</mat-icon>
+    <h1>Dispenses ISFCE</h1>
+    <p class="hero-subtitle">
+      Consultez les unités d'enseignement et gérez vos demandes de dispense.
+    </p>
+  </section>
 
-    <mat-card-content>
-      <p>
-        Cette plateforme vous permet de consulter les unités d'enseignement (UE)
-        et leurs acquis d'apprentissage, ainsi que de créer et suivre vos demandes de dispense.
-      </p>
+  <div class="actions">
+    <mat-card class="action-card" routerLink="/ues">
+      <mat-card-content>
+        <mat-icon class="action-icon">menu_book</mat-icon>
+        <h3>Parcourir les UE</h3>
+        <p>Sections, programmes et acquis d'apprentissage</p>
+      </mat-card-content>
+    </mat-card>
 
-      <div class="quick-links">
-        <a mat-stroked-button routerLink="/ues">
-          <mat-icon>menu_book</mat-icon>
-          Parcourir les UE
-        </a>
+    @if (authenticated()) {
+      <mat-card class="action-card" routerLink="/createDossier">
+        <mat-card-content>
+          <mat-icon class="action-icon">note_add</mat-icon>
+          <h3>Nouveau dossier</h3>
+          <p>Créer une demande de dispense</p>
+        </mat-card-content>
+      </mat-card>
 
-        @if (authenticated()) {
-          <a mat-stroked-button routerLink="/createDossier">
-            <mat-icon>note_add</mat-icon>
-            Nouveau dossier
-          </a>
-        } @else {
-          <button mat-flat-button (click)="login()">
-            <mat-icon>login</mat-icon>
-            Se connecter
-          </button>
-        }
-      </div>
-    </mat-card-content>
-  </mat-card>
+      <mat-card class="action-card" routerLink="/profile">
+        <mat-card-content>
+          <mat-icon class="action-icon">person</mat-icon>
+          <h3>Mon profil</h3>
+          <p>Informations personnelles et historique</p>
+        </mat-card-content>
+      </mat-card>
+    } @else {
+      <mat-card class="action-card" (click)="login()">
+        <mat-card-content>
+          <mat-icon class="action-icon">login</mat-icon>
+          <h3>Se connecter</h3>
+          <p>Accédez à votre espace personnel</p>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
 </div>

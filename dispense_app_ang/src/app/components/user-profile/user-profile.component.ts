@@ -1,7 +1,7 @@
 import {Component, computed, inject, resource} from '@angular/core';
 import Keycloak from 'keycloak-js';
 import {User} from '../../model/user';
-import {MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle} from '@angular/material/card';
+import {MatCard, MatCardContent} from '@angular/material/card';
 import {MatIcon} from '@angular/material/icon';
 import {MatDivider} from '@angular/material/divider';
 import {MatProgressBar} from '@angular/material/progress-bar';
@@ -16,9 +16,6 @@ import {MatProgressBar} from '@angular/material/progress-bar';
   selector: 'app-user-profile',
   imports: [
     MatCard,
-    MatCardHeader,
-    MatCardTitle,
-    MatCardSubtitle,
     MatCardContent,
     MatIcon,
     MatDivider,
