@@ -7,5 +7,6 @@ package org.isfce.pid.model;
  */
 public enum TypeDoc {
 	BULLETIN,
-	PROGRAMME_COURS
+	PROGRAMME_COURS,
+	MOTIVATION
 }
