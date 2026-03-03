@@ -1,55 +1,87 @@
-<mat-sidenav-container class="section-layout">
-  <mat-sidenav mode="side" opened class="ue-list-sidenav">
-
-    <!-- Liste des sections -->
-    <h3 class="panel-title">Sections</h3>
-    <mat-nav-list class="section-list">
-      @for (section of sections(); track section.code) {
-        <mat-list-item
-          (click)="selectSection(section)"
-          [activated]="section === selectedSection()"
-          class="section-item">
-          <mat-icon matListItemIcon>folder_open</mat-icon>
-          <span>{{ section.nom }}</span>
-        </mat-list-item>
-      }
-    </mat-nav-list>
-
-    <mat-divider />
-
-    <!-- Liste des UE de la section sélectionnée -->
-    <h3 class="panel-title">Unités d'enseignement</h3>
-
-    @if (uesLoading()) {
-      <mat-progress-bar mode="indeterminate" />
+<!-- Barre : chips sections + recherche -->
+<div class="toolbar-row">
+  <mat-chip-listbox hideSingleSelectionIndicator (change)="selectSection(sections()[$event.value])">
+    @for (section of sections(); track section.code; let i = $index) {
+      <mat-chip-option [value]="i">
+        {{ section.nom }}
+      </mat-chip-option>
     }
+  </mat-chip-listbox>
 
-    @if (ues().length === 0 && !uesLoading()) {
-      <p class="ue-empty">Aucun cours disponible</p>
-    } @else {
-      <mat-nav-list class="ue-list">
-        @for (ue of ues(); track ue.code) {
-          <mat-list-item
-            (click)="selectUe(ue)"
-            [activated]="ue === selectedUe()"
-            class="ue-item">
-            <mat-icon matListItemIcon>description</mat-icon>
-            <span>{{ ue.nom }}</span>
-          </mat-list-item>
-        }
-      </mat-nav-list>
-    }
-  </mat-sidenav>
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Rechercher</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput (keyup)="applyFilter($event)" placeholder="Code ou nom...">
+  </mat-form-field>
+</div>
 
-  <mat-sidenav-content class="ue-detail-content">
-    @let currentUe = selectedUe();
-    @if (currentUe) {
-      <app-eu-detail [ue]="currentUe" />
-    } @else {
-      <div class="placeholder">
-        <mat-icon class="placeholder-icon">touch_app</mat-icon>
-        <p>Sélectionnez une UE pour voir les détails</p>
+@if (uesLoading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+<!-- Layout principal : table (+ détail si UE sélectionnée) -->
+<div class="content-layout" [class.split]="!!selectedUe()">
+
+  <!-- Table des UE -->
+  @if (dataSource.data.length > 0) {
+    <div class="table-pane" [class.compact]="!!selectedUe()">
+      <table mat-table [dataSource]="dataSource" matSort class="ue-table">
+
+        <ng-container matColumnDef="code">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Code</th>
+          <td mat-cell *matCellDef="let ue" class="code-cell">{{ ue.code }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="nom">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Nom</th>
+          <td mat-cell *matCellDef="let ue">{{ ue.nom }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="ects">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>ECTS</th>
+          <td mat-cell *matCellDef="let ue">{{ ue.ects }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="nbPeriodes">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Périodes</th>
+          <td mat-cell *matCellDef="let ue">{{ ue.nbPeriodes }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            (click)="selectUe(row)"
+            [class.selected-row]="row === selectedUe()"
+            class="clickable-row">
+        </tr>
+      </table>
+    </div>
+  } @else if (!uesLoading() && selectedSection()) {
+    <div class="placeholder">
+      <mat-icon class="placeholder-icon">search_off</mat-icon>
+      <p>Aucun cours disponible pour cette section</p>
+    </div>
+  } @else if (!selectedSection()) {
+    <div class="placeholder">
+      <mat-icon class="placeholder-icon">touch_app</mat-icon>
+      <p>Sélectionnez une section pour voir les UE</p>
+    </div>
+  }
+
+  <!-- Détail de l'UE sélectionnée -->
+  @if (selectedUe(); as ue) {
+    <div class="detail-pane">
+      <div class="detail-header">
+        <button mat-button (click)="closeDetail()" class="back-btn">
+          <mat-icon>arrow_back</mat-icon> Retour
+        </button>
+        <span class="header-spacer"></span>
+        <button mat-icon-button (click)="closeDetail()" class="close-btn">
+          <mat-icon>close</mat-icon>
+        </button>
       </div>
-    }
-  </mat-sidenav-content>
-</mat-sidenav-container>
+      <app-eu-detail [ue]="ue" />
+    </div>
+  }
+
+</div>

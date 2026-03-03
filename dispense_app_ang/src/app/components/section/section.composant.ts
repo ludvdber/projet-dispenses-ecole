@@ -1,34 +1,37 @@
-import {Component, computed, inject, signal} from '@angular/core';
+import {Component, effect, inject, signal, viewChild, computed} from '@angular/core';
 import {rxResource} from '@angular/core/rxjs-interop';
 import {of} from 'rxjs';
 import {Section} from '../../model/section';
 import {Ue} from '../../model/ue';
 import {DispenseService} from '../../services/dispense.service';
-import {MatDivider} from '@angular/material/divider';
-import {MatListItem, MatNavList} from '@angular/material/list';
-import {MatSidenav, MatSidenavContainer, MatSidenavContent} from '@angular/material/sidenav';
+import {MatTableDataSource, MatTableModule} from '@angular/material/table';
+import {MatSort, MatSortModule} from '@angular/material/sort';
+import {MatChipListbox, MatChipOption} from '@angular/material/chips';
+import {MatFormField, MatLabel} from '@angular/material/form-field';
+import {MatInput} from '@angular/material/input';
 import {MatProgressBar} from '@angular/material/progress-bar';
+import {MatButton, MatIconButton} from '@angular/material/button';
 import {EuDetailComponent} from '../eu-detail/eu-detail.component';
 import {MatIcon} from '@angular/material/icon';
 
 /**
- * Page de consultation des sections et de leurs UE.
- * Panneau gauche : liste sections + UE ; panneau droit : détail UE.
- *
- * Utilise rxResource pour le chargement réactif des sections et des UE.
- *
+ * Page de consultation des UE par section.
+ * Chips sections + table triable, détail pleine largeur au clic.
  * @author Ludovic
  */
 @Component({
   selector: 'app-section',
   imports: [
-    MatListItem,
-    MatNavList,
-    MatSidenav,
-    MatSidenavContainer,
-    MatSidenavContent,
-    MatDivider,
+    MatTableModule,
+    MatSortModule,
+    MatChipListbox,
+    MatChipOption,
+    MatFormField,
+    MatLabel,
+    MatInput,
     MatProgressBar,
+    MatButton,
+    MatIconButton,
     EuDetailComponent,
     MatIcon,
   ],
@@ -38,21 +41,25 @@ import {MatIcon} from '@angular/material/icon';
 export class SectionComposant {
   private dispenseService = inject(DispenseService);
 
-  /** Section sélectionnée par l'utilisateur */
+  // --- Signaux d'état ---
   selectedSection = signal<Section | undefined>(undefined);
-
-  /** UE sélectionnée pour affichage du détail */
   selectedUe = signal<Ue | undefined>(undefined);
 
-  /** Chargement réactif de la liste des sections */
+  // Colonnes affichées dans la table
+  displayedColumns = ['code', 'nom', 'ects', 'nbPeriodes'];
+
+  // DataSource Material pour le tri et le filtre
+  dataSource = new MatTableDataSource<Ue>([]);
+
+  // Référence au MatSort du template (pour connecter le tri)
+  private sort = viewChild(MatSort);
+
+  // --- Chargement des données ---
   sectionsResource = rxResource({
     stream: () => this.dispenseService.getSections(),
   });
-
-  /** Liste des sections chargées */
   sections = computed(() => this.sectionsResource.value() ?? []);
 
-  /** Chargement réactif des UE — se déclenche à chaque changement de section */
   uesResource = rxResource({
     params: () => this.selectedSection(),
     stream: ({params: section}) => {
@@ -60,19 +67,38 @@ export class SectionComposant {
       return this.dispenseService.getUesBySection(section.code);
     },
   });
-
-  /** Liste des UE de la section courante */
   ues = computed(() => this.uesResource.value() ?? []);
-
-  /** Vrai si les UE sont en cours de chargement */
   uesLoading = computed(() => this.uesResource.isLoading());
+
+  constructor() {
+    // Quand les UEs changent, on met à jour la dataSource
+    effect(() => {
+      this.dataSource.data = this.ues();
+    });
+
+    // Quand le MatSort est disponible dans le DOM, on le connecte
+    effect(() => {
+      const s = this.sort();
+      if (s) this.dataSource.sort = s;
+    });
+  }
 
   selectSection(section: Section): void {
     this.selectedSection.set(section);
     this.selectedUe.set(undefined);
+    this.dataSource.filter = '';
   }
 
   selectUe(ue: Ue): void {
     this.selectedUe.set(ue);
+  }
+
+  closeDetail(): void {
+    this.selectedUe.set(undefined);
+  }
+
+  applyFilter(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = value.trim().toLowerCase();
   }
 }
