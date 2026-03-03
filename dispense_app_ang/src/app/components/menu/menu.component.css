@@ -1,17 +1,74 @@
-/* Espace flexible entre le branding et les actions */
-.spacer {
-  flex: 1 1 auto;
+/* Toolbar blanche avec ombre subtile */
+.navbar {
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.brand-icon {
+  color: var(--mat-sys-primary);
+  margin-right: 4px;
 }
 
 .brand {
-  margin-left: 8px;
   font-size: 1.15rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.02em;
+  color: var(--mat-sys-on-surface);
+  text-decoration: none;
+}
+
+/* Liens de navigation groupés */
+.nav-links {
+  display: flex;
+  margin-left: 1.5rem;
+  gap: 0.25rem;
+}
+
+.nav-links a {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+/* Lien actif : couleur primaire + barre en bas */
+.active-link {
+  color: var(--mat-sys-primary) !important;
+  border-bottom: 2px solid var(--mat-sys-primary);
+  border-radius: 0;
+}
+
+.spacer {
+  flex: 1 1 auto;
 }
 
 .username {
   margin: 0 8px;
   font-size: 0.875rem;
-  opacity: 0.9;
+  opacity: 0.8;
+}
+
+.desktop-actions {
+  display: flex;
+  align-items: center;
+}
+
+/* Hamburger caché par défaut (desktop) */
+.mobile-menu-btn {
+  display: none;
+}
+
+/* --- Responsive : mobile < 768px --- */
+@media (max-width: 768px) {
+  .nav-links,
+  .desktop-actions {
+    display: none;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+
+  .brand {
+    font-size: 1rem;
+  }
 }

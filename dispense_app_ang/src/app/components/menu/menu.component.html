@@ -1,23 +1,67 @@
-<mat-toolbar color="primary">
-  <!-- Bouton hamburger pour ouvrir/fermer le drawer -->
-  <button mat-icon-button aria-label="Ouvrir le menu" (click)="toggleMenu()">
+<mat-toolbar class="navbar">
+  <mat-icon class="brand-icon">school</mat-icon>
+  <a routerLink="/home" class="brand">Dispenses ISFCE</a>
+
+  <!-- Liens de navigation (desktop) -->
+  <nav class="nav-links">
+    <a mat-button routerLink="/home" routerLinkActive="active-link">
+      <mat-icon>home</mat-icon> Accueil
+    </a>
+    <a mat-button routerLink="/ues" routerLinkActive="active-link">
+      <mat-icon>menu_book</mat-icon> UE
+    </a>
+    @if (authenticated()) {
+      <a mat-button routerLink="/profile" routerLinkActive="active-link">
+        <mat-icon>person</mat-icon> Profil
+      </a>
+    }
+  </nav>
+
+  <span class="spacer"></span>
+
+  <!-- Actions utilisateur (desktop) -->
+  <div class="desktop-actions">
+    @if (!authenticated()) {
+      <button mat-button (click)="login()">
+        <mat-icon>login</mat-icon> Connexion
+      </button>
+    } @else {
+      <app-dossier-stat />
+      <span class="username">{{ getUsername() }}</span>
+      <button mat-icon-button matTooltip="Se déconnecter" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+      </button>
+    }
+  </div>
+
+  <!-- Menu hamburger (mobile) -->
+  <button mat-icon-button class="mobile-menu-btn" [matMenuTriggerFor]="mobileMenu">
     <mat-icon>menu</mat-icon>
   </button>
 
-  <span class="brand">Dispenses ISFCE</span>
-
-  <!-- Pousse le reste à droite -->
-  <span class="spacer"></span>
-
-  @if (!authenticated()) {
-    <button mat-icon-button matTooltip="Se connecter" (click)="login()">
-      <mat-icon>login</mat-icon>
-    </button>
-  } @else {
-    <app-dossier-stat />
-    <span class="username">{{ getUsername() }}</span>
-    <button mat-icon-button matTooltip="Se déconnecter" (click)="logout()">
-      <mat-icon>logout</mat-icon>
-    </button>
-  }
+  <mat-menu #mobileMenu="matMenu">
+    <a mat-menu-item routerLink="/home">
+      <mat-icon>home</mat-icon> Accueil
+    </a>
+    <a mat-menu-item routerLink="/ues">
+      <mat-icon>menu_book</mat-icon> UE
+    </a>
+    @if (authenticated()) {
+      <a mat-menu-item routerLink="/profile">
+        <mat-icon>person</mat-icon> Profil
+      </a>
+      <mat-divider />
+      <button mat-menu-item disabled>
+        <mat-icon>account_circle</mat-icon> {{ getUsername() }}
+      </button>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon> Se déconnecter
+      </button>
+    } @else {
+      <mat-divider />
+      <button mat-menu-item (click)="login()">
+        <mat-icon>login</mat-icon> Connexion
+      </button>
+    }
+  </mat-menu>
 </mat-toolbar>
