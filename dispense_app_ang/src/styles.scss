@@ -20,11 +20,12 @@ html {
 
 body {
   color-scheme: light;
-  background-color: var(--mat-sys-surface);
+  background: linear-gradient(160deg, var(--mat-sys-surface) 60%, color-mix(in srgb, var(--mat-sys-primary) 5%, var(--mat-sys-surface)));
+  background-attachment: fixed;
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
   margin: 0;
-  height: 100%;
+  min-height: 100%;
 }
 
 /* Conteneur standard pour les pages à contenu centré */
@@ -37,4 +38,11 @@ body {
 /* Texte secondaire (sous-titres, descriptions) */
 .text-secondary {
   color: var(--mat-sys-on-surface-variant);
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 16px 12px;
+  }
 }
