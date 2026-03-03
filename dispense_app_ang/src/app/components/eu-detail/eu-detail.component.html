@@ -4,29 +4,39 @@
     <mat-card-header>
       <mat-icon mat-card-avatar class="ue-icon">menu_book</mat-icon>
       <mat-card-title>{{ currentUe.nom }}</mat-card-title>
-      <mat-card-subtitle>{{ currentUe.ref }}</mat-card-subtitle>
+      <mat-card-subtitle>Réf. {{ currentUe.ref }}</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
-      <!-- Métadonnées compactes -->
       <div class="ue-meta">
         <mat-chip-set>
+          <mat-chip highlighted>{{ currentUe.code }}</mat-chip>
           <mat-chip>{{ currentUe.nbPeriodes }} périodes</mat-chip>
           <mat-chip>{{ currentUe.ects }} ECTS</mat-chip>
         </mat-chip-set>
       </div>
 
-      <p class="ue-description">{{ currentUe.prgm }}</p>
-
       @if (isLoading()) {
         <mat-progress-bar mode="indeterminate" />
       }
+
+      <!-- Programme dans un panneau déroulant -->
+      <mat-expansion-panel class="programme-panel">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon class="panel-icon">description</mat-icon>
+            Programme
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="ue-description" [innerHTML]="currentUe.prgm"></div>
+      </mat-expansion-panel>
 
       @let detail = ueDetail();
       @if (detail) {
         <mat-expansion-panel class="acquis-panel">
           <mat-expansion-panel-header>
             <mat-panel-title>
+              <mat-icon class="panel-icon">school</mat-icon>
               Acquis d'apprentissage ({{ detail.acquis.length }})
             </mat-panel-title>
           </mat-expansion-panel-header>

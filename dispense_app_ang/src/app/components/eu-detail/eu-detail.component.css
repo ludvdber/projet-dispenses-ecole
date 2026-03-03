@@ -1,3 +1,10 @@
+/* Carte UE : bordure gauche colorée + fond légèrement teinté */
+:host ::ng-deep mat-card {
+  border-left: 4px solid var(--mat-sys-primary);
+  background: color-mix(in srgb, var(--mat-sys-primary) 4%, var(--mat-sys-surface));
+  margin-bottom: 2rem;
+}
+
 .ue-icon {
   font-size: 40px;
   width: 40px;
@@ -9,14 +16,74 @@
   margin: 16px 0 8px;
 }
 
+.panel-icon {
+  margin-right: 8px;
+  font-size: 20px;
+  vertical-align: middle;
+  color: var(--mat-sys-primary);
+}
+
+.programme-panel {
+  margin-top: 1rem;
+}
+
 .ue-description {
-  white-space: pre-line;
   line-height: 1.6;
-  margin-top: 8px;
+  margin: 8px 0 0;
+}
+
+/* Styles pour le programme HTML injecté via [innerHTML] */
+:host ::ng-deep .ue-description ul.prgm {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+}
+
+:host ::ng-deep .ue-description ul.prgm li {
+  position: relative;
+  padding: 0.25rem 0 0.25rem 1.5rem;
+  line-height: 1.5;
+}
+
+:host ::ng-deep .ue-description ul.prgm li::before {
+  content: '▸';
+  position: absolute;
+  left: 0.25rem;
+  color: var(--mat-sys-primary);
+  font-weight: bold;
+}
+
+:host ::ng-deep .ue-description ul.prgm li.l2 {
+  padding-left: 3rem;
+}
+
+:host ::ng-deep .ue-description ul.prgm li.l2::before {
+  content: '–';
+  left: 1.75rem;
+  color: var(--mat-sys-secondary);
+}
+
+:host ::ng-deep .ue-description ul.prgm li.l3 {
+  padding-left: 4.5rem;
+}
+
+:host ::ng-deep .ue-description ul.prgm li.l3::before {
+  content: '•';
+  left: 3.25rem;
+  color: var(--mat-sys-tertiary);
+}
+
+:host ::ng-deep .ue-description p {
+  margin: 0.5rem 0;
+  line-height: 1.5;
+}
+
+:host ::ng-deep .ue-description p strong {
+  color: var(--mat-sys-primary);
 }
 
 .acquis-panel {
-  margin-top: 1.5rem;
+  margin-top: 0.5rem;
 }
 
 .acquis-list {
