@@ -10,6 +10,10 @@ import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 
+/**
+ * Service de gestion des utilisateurs.
+ * @author Ludovic
+ */
 // L'analyse null d'Eclipse génère des faux positifs sur les retours de Spring Data JPA
 // (save(), findById()…) dont les @NonNull ne sont pas toujours lus depuis le classpath.
 @SuppressWarnings("null")
