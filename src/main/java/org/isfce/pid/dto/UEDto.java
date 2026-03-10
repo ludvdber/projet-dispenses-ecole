@@ -2,6 +2,10 @@ package org.isfce.pid.dto;
 
 import lombok.Data;
 
+/**
+ * DTO d'une UE sans les acquis.
+ * @author Ludovic
+ */
 @Data
 public class UEDto {
 	private String code;

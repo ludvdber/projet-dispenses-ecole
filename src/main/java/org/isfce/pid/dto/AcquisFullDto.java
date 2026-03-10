@@ -8,6 +8,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO d'un acquis sans référence à l'UE (utilisé dans UEFullDto).
+ * @author Ludovic
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,7 +22,7 @@ public class AcquisFullDto {
 	@NotBlank
 	private String acquis;
 
-	@Min(value = 1, message = "{err.aquis.pourcentage.min}")
-	@Max(value = 100, message = "{err.aquis.pourcentage.max}")
+	@Min(value = 1, message = "{err.acquis.pourcentage.min}")
+	@Max(value = 100, message = "{err.acquis.pourcentage.max}")
 	private Integer pourcentage;
 }

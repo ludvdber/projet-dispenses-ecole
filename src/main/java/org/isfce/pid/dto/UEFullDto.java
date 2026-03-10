@@ -9,6 +9,10 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+/**
+ * DTO complet d'une UE avec ses acquis.
+ * @author Ludovic
+ */
 @Data
 public class UEFullDto {
 	@NotBlank

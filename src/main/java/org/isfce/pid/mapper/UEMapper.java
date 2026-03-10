@@ -14,9 +14,13 @@ import org.isfce.pid.model.UE;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-//componentModel = "spring" permet de dire à Spring de générer un Bean pour permettre l'Autowired
-//Attention l'implémentation générée sera dans un dossier qui doit être visible dans les sources du projet (STS pas automatique)
-//Chemin de la classe générée: build\generated\sources\annotationProcessor\java\main\
+/**
+ * Mapper MapStruct pour la conversion entre entités et DTOs (UE, Acquis, Dossier).
+ * <p>componentModel = "spring" permet de dire à Spring de générer un Bean pour permettre l'Autowired.
+ * Attention l'implémentation générée sera dans un dossier qui doit être visible dans les sources du projet (STS pas automatique).
+ * Chemin de la classe générée: build\generated\sources\annotationProcessor\java\main\</p>
+ * @author Ludovic
+ */
 @Mapper(componentModel = "spring")
 public interface UEMapper {
 	
