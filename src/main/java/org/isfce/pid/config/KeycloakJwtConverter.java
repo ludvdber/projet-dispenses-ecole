@@ -17,6 +17,10 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.stereotype.Component;
 
+/**
+ * Convertisseur JWT Keycloak : extrait les rôles realm_access et le username.
+ * @author Ludovic
+ */
 @SuppressWarnings("null")
 @Component
 public class KeycloakJwtConverter implements Converter<Jwt, JwtAuthenticationToken> {

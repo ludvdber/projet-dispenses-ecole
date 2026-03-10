@@ -18,6 +18,8 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+	// Mockito javaagent — évite le chargement dynamique (interdit en Java 21+)
+	mockitoAgent
 }
 
 repositories {
@@ -58,6 +60,9 @@ dependencies {
     
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// Mockito comme agent statique (recommandé Java 21+)
+	mockitoAgent('org.mockito:mockito-core') { transitive = false }
 }
 
 
@@ -76,6 +81,6 @@ tasks.named('compileTestJava') {
 
 tasks.named('test') {
 	useJUnitPlatform()
-	// Java 21+ restreint le chargement dynamique d'agents (Mockito/ByteBuddy)
-	jvmArgs '-XX:+EnableDynamicAgentLoading'
+	// Charger Mockito comme agent statique (supprime les warnings Java 21+)
+	jvmArgs "-javaagent:${configurations.mockitoAgent.asPath}"
 }

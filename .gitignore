@@ -58,6 +58,17 @@ dispense_app_ang/.cache/
 ### Claude Code ###
 .claude/
 
+### Uploads (fichiers étudiants) ###
+uploads/
+
+### OS ###
+Thumbs.db
+.DS_Store
+
+### Env (sécurité) ###
+.env
+*.env.local
+
 ### Misc ###
 HELP.md
 /PID_Projet_2526.pdf

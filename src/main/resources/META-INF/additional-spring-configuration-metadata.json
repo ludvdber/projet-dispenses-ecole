@@ -1,0 +1,16 @@
+{
+  "properties": [
+    {
+      "name": "app.upload.dir",
+      "type": "java.lang.String",
+      "description": "Répertoire de stockage des documents uploadés.",
+      "defaultValue": "uploads"
+    },
+    {
+      "name": "app.upload.max-size",
+      "type": "java.lang.Long",
+      "description": "Taille maximale d'un fichier uploadé (en octets).",
+      "defaultValue": 5242880
+    }
+  ]
+}
