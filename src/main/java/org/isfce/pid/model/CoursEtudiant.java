@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,6 +52,7 @@ public class CoursEtudiant {
 	@Column(name = "INTITULE", length = 200, nullable = false)
 	private String intitule;
 
+	@Min(value = 1, message = "Les crédits ECTS doivent être au moins 1")
 	@Column(name = "ECTS", nullable = true)
 	private Integer ects;
 

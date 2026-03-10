@@ -54,8 +54,8 @@ public class Acquis {
 	@Column(length = 500, nullable = false)
 	private String acquis;
 
-	@Min(value = 1, message = "{err.aquis.pourcentage.min}")
-	@Max(value = 100, message = "{err.aquis.pourcentage.max}")
+	@Min(value = 1, message = "{err.acquis.pourcentage.min}")
+	@Max(value = 100, message = "{err.acquis.pourcentage.max}")
 	@Column(nullable = false)
 	private Integer pourcentage;
 }

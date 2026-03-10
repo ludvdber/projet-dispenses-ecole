@@ -1,5 +1,8 @@
 package org.isfce.pid.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -7,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -48,4 +52,7 @@ public class CorrCours {
 
 	@Column(name = "URL_FICHE_OFFIC", length = 500, nullable = true)
 	private String urlFicheOffic;
+
+	@OneToMany(mappedBy = "corrCours")
+	private List<CorrCoursUe> uesISFCE = new ArrayList<>();
 }

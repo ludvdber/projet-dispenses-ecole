@@ -33,4 +33,5 @@ public interface IDossierDao extends JpaRepository<Dossier, Long> {
 
 	int countByUser(User user);
 
+	List<Dossier> findByUserUsernameOrderByDateCreationDesc(String username);
 }

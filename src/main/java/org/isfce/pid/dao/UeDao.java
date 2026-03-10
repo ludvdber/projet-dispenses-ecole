@@ -7,6 +7,10 @@ import org.isfce.pid.model.UE;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+/**
+ * DAO Spring Data JPA pour l'entité UE.
+ * @author Ludovic
+ */
 public interface UeDao extends JpaRepository<UE,String>
 {
 	@Query("SELECT new org.isfce.pid.dto.UEDto(u.code, u.ref, u.nom, u.nbPeriodes, u.ects, u.prgm) FROM TUE u")
