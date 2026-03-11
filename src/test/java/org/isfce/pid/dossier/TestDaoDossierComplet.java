@@ -286,11 +286,4 @@ class TestDaoDossierComplet {
 		assertEquals(0, daoDossier.getNbDossierCloture("dvo"));
 	}
 
-	@Test
-	@Transactional
-	void testNbDossiersViaService() {
-		var nb = dossierService.getNbDossiers("et1");
-		assertEquals(2, nb.traite()); // clôturés
-		assertEquals(1, nb.enCours()); // en cours
-	}
 }

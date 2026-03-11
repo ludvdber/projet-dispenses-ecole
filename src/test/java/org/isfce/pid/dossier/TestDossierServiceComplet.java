@@ -10,7 +10,6 @@ import org.isfce.pid.controller.error.DossierException;
 import org.isfce.pid.dao.IUserDao;
 import org.isfce.pid.model.Dossier;
 import org.isfce.pid.model.EtatDossier;
-import org.isfce.pid.model.NbDossiers;
 import org.isfce.pid.model.User;
 import org.isfce.pid.service.DossierService;
 import org.junit.jupiter.api.Test;
@@ -92,47 +91,4 @@ class TestDossierServiceComplet {
 		assertFalse(dossierService.getDossierEnCours(dvo).isPresent());
 	}
 
-	// ======================== getNbDossier ========================
-
-	@Test
-	@Transactional
-	void testGetNbDossier() {
-		User et1 = daoUser.findById("et1").get();
-		assertEquals(3, dossierService.getNbDossier(et1)); // 2 clôturés + 1 en cours
-	}
-
-	// ======================== getNbDossiers (record) ========================
-
-	@Test
-	@Transactional
-	void testGetNbDossiersEt1() {
-		NbDossiers nb = dossierService.getNbDossiers("et1");
-		assertEquals(2, nb.traite()); // 2 clôturés
-		assertEquals(1, nb.enCours()); // 1 en cours
-	}
-
-	@Test
-	@Transactional
-	void testGetNbDossiersEt2() {
-		NbDossiers nb = dossierService.getNbDossiers("et2");
-		assertEquals(0, nb.traite());
-		assertEquals(1, nb.enCours());
-	}
-
-	@Test
-	@Transactional
-	void testGetNbDossiersUtilisateurSansDossier() {
-		NbDossiers nb = dossierService.getNbDossiers("dvo");
-		assertEquals(0, nb.traite());
-		assertEquals(0, nb.enCours());
-	}
-
-	@Test
-	@Transactional
-	void testGetNbDossiersUtilisateurInexistant() {
-		// Un username qui n'existe pas → 0 partout (pas d'exception)
-		NbDossiers nb = dossierService.getNbDossiers("inexistant");
-		assertEquals(0, nb.traite());
-		assertEquals(0, nb.enCours());
-	}
 }

@@ -1,6 +1,5 @@
 package org.isfce.pid.user;
 
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -15,7 +14,6 @@ import java.util.Optional;
 import org.isfce.pid.model.User;
 import org.isfce.pid.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -62,12 +60,6 @@ class TestUserController {
 		when(userServiceMock.getUserById("val")).thenReturn(Optional.of(val));
 
 		when(userServiceMock.addUser(et2)).thenReturn(et2);
-	}
-
-	@Test
-	@Disabled
-	void testGetAllUser() {
-		fail("Not yet implemented");
 	}
 
 	@Test //

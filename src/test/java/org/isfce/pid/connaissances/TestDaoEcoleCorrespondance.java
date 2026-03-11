@@ -16,6 +16,7 @@ import org.isfce.pid.model.Ecole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -39,6 +40,8 @@ class TestDaoEcoleCorrespondance {
 	ICorrespondanceDao daoCorrespondance;
 	@Autowired
 	ICorrCoursDao daoCorrCours;
+	@Autowired
+	JdbcTemplate jdbc;
 
 	// ======================== ECOLE ========================
 
@@ -135,6 +138,8 @@ class TestDaoEcoleCorrespondance {
 	@Transactional
 	void testDeleteCorrCours() {
 		long countBefore = daoCorrCours.count();
+		// Supprimer d'abord la référence FK dans TCORR_COURS_UE
+		jdbc.update("DELETE FROM TCORR_COURS_UE WHERE FK_CORR_COURS = 2");
 		daoCorrCours.deleteById(2L); // corrCours 1 est référencé par cours_etudiant (FK)
 		assertEquals(countBefore - 1, daoCorrCours.count());
 	}

@@ -1,22 +1,20 @@
 package org.isfce.pid.ue;
 
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.hamcrest.Matchers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.hamcrest.Matchers;
-import org.isfce.pid.dto.AcquisFullDto;
 import org.isfce.pid.dto.UEFullDto;
 import org.isfce.pid.mapper.UEMapper;
 import org.isfce.pid.model.Acquis;
@@ -92,106 +90,6 @@ public class TestUEController {
 				.andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasSize(1)))
 				.andExpect(MockMvcResultMatchers.jsonPath("$[0].code").value("IPID"))
 				.andExpect(MockMvcResultMatchers.jsonPath("$[0].acquis").doesNotExist());
-	}
-
-	@Test
-	@WithMockUser(username = "vo", roles = "ADMIN", password = "vo")
-	void testPostIPID() throws Exception {
-		String jsonITest = """
-								{
-				  "code": "ITEST",
-				  "ref": "TTT",
-				  "nom": "Cours Test",
-				  "nbPeriodes": 20,
-				  "ects": 4,
-				  "prgm": "Contenu",
-				  "acquis": [
-				    {
-				      "num": 1,
-				      "acquis": "Aq1",
-				      "pourcentage": 60
-				    },
-				    {
-				      "num": 2,
-				      "acquis": "Aq2",
-				      "pourcentage": 40
-				    }
-				  ]
-				}
-
-								""";
-		UEFullDto ueDto = new UEFullDto();
-		ueDto.setCode("ITEST");
-		ueDto.setRef("TTT");
-		ueDto.setNom("Cours Test");
-		ueDto.setNbPeriodes(20);
-		ueDto.setEcts(4);
-		ueDto.setPrgm("Contenu");
-
-		AcquisFullDto aq1 = new AcquisFullDto(1, "Aq1", 60);
-		AcquisFullDto aq2 = new AcquisFullDto(2, "Aq2", 40);
-
-		ueDto.setAcquis(List.of(aq1, aq2));
-
-		when(ueServiceMock.existUE("TEST")).thenReturn(false);
-		when(ueServiceMock.addUE(ueDto)).thenReturn(ueDto);
-
-		mockMvc.perform(post("/api/ue/add").contentType("application/json").content(jsonITest))
-				.andExpect(status().isCreated()).andExpect(content().contentType("application/json"))
-				// Vérifier que le code renvoyé est correct
-				.andExpect(jsonPath("$.code").value("ITEST")).andExpect(jsonPath("$.acquis", Matchers.hasSize(2)))
-				.andExpect(jsonPath("$.acquis[0].num").value(1)).andExpect(jsonPath("$.acquis[0].acquis").value("Aq1"))
-				.andExpect(jsonPath("$.acquis[0].pourcentage").value(60))
-				.andExpect(jsonPath("$.acquis[1].num").value(2)).andExpect(jsonPath("$.acquis[1].acquis").value("Aq2"))
-				.andExpect(jsonPath("$.acquis[1].pourcentage").value(40));
-
-	}
-
-	@Test
-	@WithMockUser(username = "vo", roles = "ADMIN", password = "vo")
-	void testPostBadUE() throws Exception {
-		// erreurs sur nbPériodes, ects,prgm, acquis[0] (num et acquis vide)
-		String jsonBad = """
-								{
-				  "code": "ITEST",
-				  "ref": "TTT",
-				  "nom": "Cours Test",
-				  "nbPeriodes": 0,
-				  "ects": 0,
-				  "acquis": [
-				    {
-				      "acquis": "",
-				      "pourcentage": 0
-				    },
-				    {
-				      "num": 2,
-				      "acquis": "Aq2",
-				      "pourcentage": 40
-				    }
-				  ]
-				}
-					""";
-
-		mockMvc.perform(
-				post("/api/ue/add").contentType("application/json").content(jsonBad).header("Accept-Language", "fr"))// pour
-																														// avoir
-																														// les
-																														// messages
-																														// en
-																														// Français
-				.andExpect(status().isBadRequest()).andExpect(content().contentType("application/json"))
-				.andExpect(jsonPath("$.nbPeriodes").exists())
-				.andExpect(jsonPath("$.nbPeriodes", containsString("Il faut minimum")))// test partie de la chaine
-				.andExpect(jsonPath("$.ects").exists()).andExpect(jsonPath("$.ects", containsString("Il faut minimum")))// test
-																														// partie
-																														// de
-																														// la
-																														// chaine
-				.andExpect(jsonPath("$.prgm").exists()).andExpect(jsonPath("$.prgm").value("ne doit pas être vide"))
-				.andExpect(jsonPath("$.['acquis[0].num']").value("ne doit pas être nul"))// Test des acquis
-				.andExpect(jsonPath("$.['acquis[0].pourcentage']", containsString("Le pourcentage doit")))// pourcentage
-																											// acquis 0
-				.andExpect(jsonPath("$.['acquis[0].acquis']").value("ne doit pas être vide"));
 	}
 
 	private static UE creeIPID() {

@@ -17,8 +17,15 @@ import org.isfce.pid.model.UE;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
+/**
+ * Tests du mapping UE ↔ DTO via MapStruct.
+ *
+ * @author Ludovic
+ */
 @SpringBootTest
+@ActiveProfiles("testU")
 public class TestUeDto {
 	@Autowired
 	UEMapper mapper;
@@ -93,21 +100,6 @@ public class TestUeDto {
 		
 		assertEquals(pid, pid2);
 		assertEquals(pid.getAcquis(),pid2.getAcquis());
-		
-		// liste Dto
-		/*
-		 * AcquisDto aq1D=new AcquisDto("IPAP",1,"TXT1",10); AcquisDto aq2D=new
-		 * AcquisDto("IPAP",2,"TXT2",20); Acquis aq1=new Acquis(new
-		 * IdAcquis("IPAP",1),"TXT1",10); Acquis aq2=new Acquis(new
-		 * IdAcquis("IPAP",2),"TXT2",20);
-		 * 
-		 * List<AcquisDto> listeDto=new ArrayList<>(); listeDto.add(aq1D);
-		 * listeDto.add(aq2D); //mapper sur liste Acquis
-		 * 
-		 * List<Acquis> liste=mapper.toListAcquis(listeDto);
-		 * assertEquals(2,liste.size()); assertEquals(aq1,liste.get(0));
-		 * assertEquals(aq2,liste.get(1));
-		 */
 	}
 
 }
