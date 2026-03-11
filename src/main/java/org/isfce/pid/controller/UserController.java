@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,10 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Contrôleur REST pour la gestion des utilisateurs.
+ * @author Ludovic
+ */
 @SuppressWarnings("null")
 @RestController
 @RequestMapping(path = "/api/user", produces = "application/json")
-@CrossOrigin("*")
 @Slf4j
 public class UserController {
 
@@ -57,7 +59,7 @@ public class UserController {
 		}
 
 		var oUser = userService.getUserById(username);
-		log.info("  username: " + username);
+		log.debug("getUserInfo username={}", username);
 		User userEntity = oUser.orElse(null);
 
 		// Crée l'utilisateur s'il n'existe pas et que
