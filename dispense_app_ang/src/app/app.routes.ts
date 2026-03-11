@@ -4,6 +4,8 @@ import {UserProfileComponent} from './components/user-profile/user-profile.compo
 import {canActivateAuthRole} from './guards/auth-role.guard';
 import {SectionComposant} from './components/section/section.composant';
 import {DossierCreate} from './components/dossier-create/dossier-create';
+import {DossierListComponent} from './components/dossier-list/dossier-list.component';
+import {DossierDetailComponent} from './components/dossier-detail/dossier-detail.component';
 import {ForbiddenComponent} from './components/forbidden/forbidden.component';
 
 export const routes: Routes = [
@@ -20,15 +22,28 @@ export const routes: Routes = [
     data: {role: 'view-profile'}
   },
   {
-    path: "ues",
+    path: 'ues',
     component: SectionComposant,
     canActivate: [canActivateAuthRole],
     data: {role: 'ETUDIANT'}
   },
   {
-    path: "createDossier",
+    path: 'createDossier',
     component: DossierCreate,
     canActivate: [canActivateAuthRole],
     data: {role: 'ETUDIANT'}
-  }
+  },
+  {
+    path: 'dossiers',
+    component: DossierListComponent,
+    canActivate: [canActivateAuthRole],
+    data: {role: 'ETUDIANT'}
+  },
+  {
+    path: 'dossier/:id',
+    component: DossierDetailComponent,
+    canActivate: [canActivateAuthRole],
+    data: {role: 'ETUDIANT'}
+  },
+  {path: '**', redirectTo: '/home'},
 ];

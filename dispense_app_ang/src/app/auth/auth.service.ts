@@ -8,16 +8,12 @@ import {KEYCLOAK_EVENT_SIGNAL, KeycloakEventType, ReadyArgs, typeEventArgs} from
 export class AuthService {
   public authenticated = signal(false);
   username: string | undefined = "";
-  keycloakStatus: string | undefined;
   private readonly keycloak = inject(Keycloak);
   private readonly keycloakSignal = inject(KEYCLOAK_EVENT_SIGNAL);
-  userRoles: string[] | undefined;
 
   constructor() {
     effect(() => {
       const keycloakEvent = this.keycloakSignal();
-
-      this.keycloakStatus = keycloakEvent.type;
 
       if (keycloakEvent.type === KeycloakEventType.Ready) {
         let connected = typeEventArgs<ReadyArgs>(keycloakEvent.args)
@@ -25,12 +21,10 @@ export class AuthService {
         if (connected) {
           this.keycloak.loadUserProfile().then(userProfile => {
               this.username = userProfile.username;
-              this.userRoles = this.keycloak.realmAccess?.roles || [];
               this.authenticated.set(connected);
             }
           ).catch(
             error => {
-              console.log(error);
               this.username = "";
             }
           )

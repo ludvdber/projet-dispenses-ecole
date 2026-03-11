@@ -1,35 +1,4 @@
-<div class="page-container">
-  <mat-card class="dossier-card">
-    <mat-card-header>
-      <mat-icon mat-card-avatar class="dossier-icon">folder_open</mat-icon>
-      <mat-card-title>Nouveau dossier de dispense</mat-card-title>
-      <mat-card-subtitle>Créé le {{ dateCreation | date:'dd/MM/yyyy' }}</mat-card-subtitle>
-    </mat-card-header>
-
-    <mat-card-content>
-      <!-- Objet de la demande -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Objet de la demande</mat-label>
-        <textarea matInput rows="6"
-                  [value]="objetDemande()"
-                  (input)="objetDemande.set($any($event.target).value)"
-                  placeholder="Décrivez votre demande (10 caractères minimum)...">
-        </textarea>
-        @if (!isValid() && objetDemande().length > 0) {
-          <mat-error>
-            Le texte doit détailler l'objet de votre demande
-          </mat-error>
-        }
-      </mat-form-field>
-    </mat-card-content>
-
-    <mat-card-actions align="end">
-      <button mat-flat-button color="primary"
-              [disabled]="!isValid() || isSubmitting()"
-              (click)="createDossier()">
-        <mat-icon>send</mat-icon>
-        Soumettre le dossier
-      </button>
-    </mat-card-actions>
-  </mat-card>
+<div class="create-loading">
+  <mat-spinner diameter="48" />
+  <p>Création du dossier en cours...</p>
 </div>

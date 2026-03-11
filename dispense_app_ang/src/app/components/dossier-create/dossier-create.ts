@@ -1,74 +1,44 @@
-import {Component, computed, inject, signal} from '@angular/core';
-import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle} from '@angular/material/card';
-import {MatIcon} from '@angular/material/icon';
-import {MatError, MatFormField, MatInput, MatLabel} from '@angular/material/input';
-import {MatButton} from '@angular/material/button';
+import {Component, inject} from '@angular/core';
+import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Router} from '@angular/router';
-import {DispenseService} from '../../services/dispense.service';
-import {DatePipe} from '@angular/common';
+import {DossierService} from '../../services/dossier.service';
 
 /**
- * Formulaire de création d'un dossier de dispense.
+ * Création automatique d'un dossier de dispense.
  *
- * Utilise les Signal Forms Angular 21 (signal + computed, sans FormGroup).
- * Affiche un retour visuel via MatSnackBar et redirige vers /home après succès.
+ * Dès l'initialisation, appelle le backend pour créer le dossier
+ * avec un objet auto-généré. Redirige vers le détail en cas de succès,
+ * ou vers la liste avec un message d'erreur sinon.
  *
  * @author Ludovic
  */
 @Component({
   selector: 'app-dossier-create',
-  imports: [
-    MatCard,
-    MatCardHeader,
-    MatCardTitle,
-    MatCardSubtitle,
-    MatCardContent,
-    MatCardActions,
-    MatIcon,
-    MatFormField,
-    MatLabel,
-    MatInput,
-    MatError,
-    MatButton,
-    DatePipe,
-  ],
+  imports: [MatProgressSpinner],
   templateUrl: './dossier-create.html',
   styleUrl: './dossier-create.css',
 })
 export class DossierCreate {
-  private dossierService = inject(DispenseService);
+  private dossierService = inject(DossierService);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
 
-  readonly dateCreation = new Date();
+  constructor() {
+    const now = new Date();
+    const dd = String(now.getDate()).padStart(2, '0');
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const yyyy = now.getFullYear();
+    const objetDemande = `Demande de dispense du ${dd}/${mm}/${yyyy}`;
 
-  /** Valeur de l'objet de la demande, liée au textarea par signal. */
-  objetDemande = signal('');
-
-  /** Vrai si le texte contient au moins 10 caractères non-blancs. */
-  isValid = computed(() => this.objetDemande().trim().length >= 10);
-
-  /** Vrai pendant la soumission HTTP pour désactiver le bouton et éviter les doublons. */
-  isSubmitting = signal(false);
-
-  createDossier() {
-    if (!this.isValid() || this.isSubmitting()) return;
-
-    this.isSubmitting.set(true);
-    this.dossierService.createDossier(this.objetDemande()).subscribe({
-      next: () => {
-        this.isSubmitting.set(false);
-        this.snackBar.open('Dossier créé avec succès !', 'Fermer', {duration: 3000});
-        this.router.navigate(['/home']);
+    this.dossierService.createDossier(objetDemande).subscribe({
+      next: (dossier) => {
+        this.router.navigate(['/dossier', dossier.id]);
       },
-      error: err => {
-        this.isSubmitting.set(false);
-        const msg =
-          err.error?.objetDemande ||
-          err.error?.message ||
-          'Erreur lors de la création du dossier.';
+      error: (err) => {
+        const msg = err.error?.error || err.error?.message || 'Erreur lors de la création du dossier.';
         this.snackBar.open(msg, 'Fermer', {duration: 5000});
+        this.router.navigate(['/dossiers']);
       },
     });
   }

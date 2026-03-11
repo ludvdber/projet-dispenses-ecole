@@ -3,7 +3,6 @@ import {RouterModule} from '@angular/router';
 import {AuthService} from '../../auth/auth.service';
 import {MatIconModule} from '@angular/material/icon';
 import {MatToolbar} from '@angular/material/toolbar';
-import {DossierStat} from '../dossier-stat/dossier-stat';
 import {MatButton, MatIconButton} from '@angular/material/button';
 import {MatTooltip} from '@angular/material/tooltip';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
@@ -16,7 +15,7 @@ import {MatDivider} from '@angular/material/divider';
  */
 @Component({
   selector: 'app-menu',
-  imports: [RouterModule, MatIconModule, MatToolbar, DossierStat, MatButton, MatIconButton, MatTooltip, MatMenu, MatMenuItem, MatMenuTrigger, MatDivider],
+  imports: [RouterModule, MatIconModule, MatToolbar, MatButton, MatIconButton, MatTooltip, MatMenu, MatMenuItem, MatMenuTrigger, MatDivider],
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.css',
 })

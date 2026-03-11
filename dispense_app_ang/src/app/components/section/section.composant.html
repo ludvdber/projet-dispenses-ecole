@@ -24,7 +24,7 @@
 
   <!-- Table des UE -->
   @if (dataSource.data.length > 0) {
-    <div class="table-pane" [class.compact]="!!selectedUe()">
+    <div class="table-pane">
       <table mat-table [dataSource]="dataSource" matSort class="ue-table">
 
         <ng-container matColumnDef="code">

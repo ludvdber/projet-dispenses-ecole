@@ -11,6 +11,9 @@
       <mat-icon>menu_book</mat-icon> UE
     </a>
     @if (authenticated()) {
+      <a mat-button routerLink="/dossiers" routerLinkActive="active-link">
+        <mat-icon>folder</mat-icon> Mes dossiers
+      </a>
       <a mat-button routerLink="/profile" routerLinkActive="active-link">
         <mat-icon>person</mat-icon> Profil
       </a>
@@ -26,7 +29,6 @@
         <mat-icon>login</mat-icon> Connexion
       </button>
     } @else {
-      <app-dossier-stat />
       <span class="username">{{ getUsername() }}</span>
       <button mat-icon-button matTooltip="Se déconnecter" (click)="logout()">
         <mat-icon>logout</mat-icon>
@@ -47,6 +49,9 @@
       <mat-icon>menu_book</mat-icon> UE
     </a>
     @if (authenticated()) {
+      <a mat-menu-item routerLink="/dossiers">
+        <mat-icon>folder</mat-icon> Mes dossiers
+      </a>
       <a mat-menu-item routerLink="/profile">
         <mat-icon>person</mat-icon> Profil
       </a>
