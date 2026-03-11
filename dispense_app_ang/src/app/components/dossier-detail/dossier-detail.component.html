@@ -1,0 +1,494 @@
+@if (isLoading()) {
+  <div class="center">
+    <mat-spinner diameter="48" />
+  </div>
+} @else if (dossier(); as d) {
+
+  <!-- En-tête -->
+  <div class="header">
+    <button mat-icon-button (click)="retour()" matTooltip="Retour aux dossiers">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2>{{ d.objetDemande }}</h2>
+    <mat-chip [class]="etatColor(d.etat)" highlighted>{{ etatLabel(d.etat) }}</mat-chip>
+  </div>
+
+  <p class="dates">
+    Créé le {{ d.dateCreation | date:'dd/MM/yyyy' }}
+    @if (d.dateSoumis) {
+      — Soumis le {{ d.dateSoumis | date:'dd/MM/yyyy' }}
+    }
+  </p>
+
+  <!-- Bandeau complétude (toujours visible) -->
+  @if (completude(); as c) {
+    <mat-card class="completude-card" appearance="outlined">
+      <mat-card-content>
+        <div class="completude-row">
+          <span class="completude-item" [class.ok]="c.bulletinOk" [class.ko]="!c.bulletinOk">
+            <mat-icon>{{ c.bulletinOk ? 'check_circle' : 'cancel' }}</mat-icon> Bulletin
+          </span>
+          <span class="completude-item" [class.ok]="c.motivationOk" [class.ko]="!c.motivationOk">
+            <mat-icon>{{ c.motivationOk ? 'check_circle' : 'cancel' }}</mat-icon> Motivation
+          </span>
+          <span class="completude-item" [class.ok]="c.dispensesOk" [class.ko]="!c.dispensesOk">
+            <mat-icon>{{ c.dispensesOk ? 'check_circle' : 'cancel' }}</mat-icon> Dispenses
+          </span>
+          @if (c.hasCoursInconnus) {
+            <span class="completude-item" [class.ok]="c.coursInconnusOk" [class.ko]="!c.coursInconnusOk">
+              <mat-icon>{{ c.coursInconnusOk ? 'check_circle' : 'cancel' }}</mat-icon> Cours inconnus
+            </span>
+          } @else {
+            <span class="completude-item na">
+              <mat-icon>remove_circle_outline</mat-icon> Cours inconnus
+            </span>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- ============================== MODE LECTURE ============================== -->
+  @if (!isModifiable()) {
+
+    <p class="etat-message">{{ etatMessage(d.etat) }}</p>
+
+    <h3>Cours réussis</h3>
+    @if (cours().length === 0) {
+      <p class="empty-msg">Aucun cours</p>
+    } @else {
+      <div class="item-grid">
+        @for (c of cours(); track c.id) {
+          <mat-card appearance="outlined">
+            <mat-card-header>
+              <mat-card-title>{{ c.codeCours }} — {{ c.intitule }}</mat-card-title>
+              <mat-card-subtitle>
+                @if (c.codeEcole) { {{ c.codeEcole }} }
+                @if (c.nomEcole) { — {{ c.nomEcole }} }
+                @if (c.ects) { | {{ c.ects }} ECTS }
+              </mat-card-subtitle>
+            </mat-card-header>
+          </mat-card>
+        }
+      </div>
+    }
+
+    <h3>Dispenses</h3>
+    @if (dispenses().length === 0) {
+      <p class="empty-msg">Aucune dispense</p>
+    } @else {
+      <div class="item-grid">
+        @for (disp of dispenses(); track disp.id) {
+          <mat-card appearance="outlined">
+            <mat-card-header>
+              <mat-card-title>{{ disp.codeUe }} — {{ disp.nomUe }}</mat-card-title>
+              @if (disp.decision) {
+                <mat-card-subtitle>Décision : {{ disp.decision }}</mat-card-subtitle>
+              }
+            </mat-card-header>
+            <mat-card-content>
+              @if (dispenseBadge(disp) === 'reconnu') {
+                <mat-chip class="badge-reconnu" highlighted>
+                  <mat-icon>verified</mat-icon> Correspondance reconnue
+                </mat-chip>
+              } @else if (dispenseBadge(disp) === 'inconnu') {
+                <mat-chip class="badge-inconnu" highlighted>
+                  <mat-icon>help_outline</mat-icon> À évaluer par le coordinateur
+                </mat-chip>
+              }
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+    }
+
+    <h3>Documents</h3>
+    @for (doc of documents(); track doc.id) {
+      <div class="doc-row">
+        <button mat-button class="doc-link" (click)="telecharger(doc.id!, doc.originalFilename!)">
+          <mat-icon>download</mat-icon> {{ doc.originalFilename }}
+        </button>
+      </div>
+    }
+
+  } @else {
+
+    <!-- ============================== STEPPER ============================== -->
+    <mat-stepper [linear]="true" #stepper>
+
+      <!-- ==================== STEP 1 : COURS RÉUSSIS ==================== -->
+      <mat-step [completed]="step1Valid()">
+        <ng-template matStepLabel>Cours réussis</ng-template>
+
+        <mat-card class="form-card" appearance="outlined">
+          <mat-card-header>
+            <mat-card-title>Ajouter un cours</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="form-grid">
+              <mat-form-field>
+                <mat-label>École</mat-label>
+                <mat-select [value]="selectedEcoleId()"
+                            (selectionChange)="selectedEcoleId.set($event.value)">
+                  @for (ecole of ecoles(); track ecole.code) {
+                    <mat-option [value]="ecole.code">{{ ecole.nom }}</mat-option>
+                  }
+                  <mat-option value="AUTRE">Mon école n'est pas dans la liste</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              @if (selectedEcoleId() === 'AUTRE') {
+                <mat-form-field>
+                  <mat-label>Nom de l'école *</mat-label>
+                  <input matInput [value]="nomEcoleLibre()"
+                         (input)="nomEcoleLibre.set($any($event.target).value)">
+                </mat-form-field>
+              }
+
+              <!-- Sélection du cours (école connue avec cours en BDD) -->
+              @if (isEcoleConnue() && hasCoursConnus()) {
+                <mat-form-field>
+                  <mat-label>Cours</mat-label>
+                  <mat-select [value]="selectedCoursCode()"
+                              (selectionChange)="selectedCoursCode.set($event.value)">
+                    @for (ce of coursEcole(); track ce.codeCours) {
+                      <mat-option [value]="ce.codeCours">
+                        {{ ce.codeCours }} — {{ ce.intitule }}
+                        @if (ce.ects) { ({{ ce.ects }} ECTS) }
+                      </mat-option>
+                    }
+                    <mat-option value="AUTRE">Mon cours n'est pas dans la liste</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              }
+
+              <!-- Cours connu sélectionné → aperçu lecture seule -->
+              @if (selectedCoursConnu(); as cc) {
+                <div class="cours-preview">
+                  <span><strong>{{ cc.codeCours }}</strong> — {{ cc.intitule }}</span>
+                  @if (cc.ects) { <span class="ects-badge">{{ cc.ects }} ECTS</span> }
+                </div>
+              }
+
+              <!-- Saisie libre (école AUTRE, ou cours AUTRE, ou école sans cours connus) -->
+              @if (isCoursLibre() && !selectedCoursConnu()) {
+                <mat-form-field>
+                  <mat-label>Code cours *</mat-label>
+                  <input matInput [value]="coursCodeCours()"
+                         (input)="coursCodeCours.set($any($event.target).value)">
+                </mat-form-field>
+
+                <mat-form-field>
+                  <mat-label>Intitulé *</mat-label>
+                  <input matInput [value]="coursIntitule()"
+                         (input)="coursIntitule.set($any($event.target).value)">
+                </mat-form-field>
+
+                <mat-form-field>
+                  <mat-label>ECTS</mat-label>
+                  <input matInput type="number" min="1" [value]="coursEcts()"
+                         (input)="coursEcts.set($any($event.target).value ? +$any($event.target).value : null)">
+                </mat-form-field>
+
+                <mat-form-field>
+                  <mat-label>URL fiche</mat-label>
+                  <input matInput [value]="coursUrlFiche()"
+                         (input)="coursUrlFiche.set($any($event.target).value)">
+                </mat-form-field>
+              }
+            </div>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-flat-button color="primary" [disabled]="!coursFormValid()" (click)="ajouterCours()">
+              <mat-icon>add</mat-icon> Ajouter
+            </button>
+          </mat-card-actions>
+        </mat-card>
+
+        @if (cours().length === 0) {
+          <p class="empty-msg">Aucun cours ajouté</p>
+        } @else {
+          @for (c of cours(); track c.id) {
+            <div class="cours-row">
+              <div class="cours-info">
+                @if (c.statutSaisie) {
+                  <mat-chip [class]="c.statutSaisie === 'AUTO_RECONNU' ? 'etat-vert' : 'etat-orange'" highlighted>
+                    {{ c.statutSaisie === 'AUTO_RECONNU' ? 'Auto-reconnu' : 'Inconnu' }}
+                  </mat-chip>
+                }
+                <span class="cours-detail">
+                  @if (c.nomEcole) { {{ c.nomEcole }} | }
+                  @if (c.codeEcole && !c.nomEcole) { {{ c.codeEcole }} | }
+                  {{ c.codeCours }} — {{ c.intitule }}
+                  @if (c.ects) { | {{ c.ects }} ECTS }
+                </span>
+                <button mat-icon-button color="warn" (click)="supprimerCours(c.id!)" matTooltip="Supprimer">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+
+              @if (c.statutSaisie === 'INCONNU') {
+                @if (hasProgDoc(c.id!) || c.urlFiche) {
+                  <span class="justifie-badge">
+                    <mat-icon>verified</mat-icon> Justifié
+                  </span>
+                } @else {
+                  <div class="inconnu-justify">
+                    <input type="file" accept=".pdf" class="file-input"
+                           #progInput (change)="onProgFileSelected($event, c.id!)">
+                    <button mat-button (click)="progInput.click()">
+                      <mat-icon>upload</mat-icon> Uploader programme (PDF)
+                    </button>
+                  </div>
+                }
+              }
+            </div>
+          }
+        }
+
+        <div class="step-actions">
+          <button mat-flat-button color="primary" matStepperNext [disabled]="!step1Valid()">
+            Continuer <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </mat-step>
+
+      <!-- ==================== STEP 2 : DISPENSES ==================== -->
+      <mat-step [completed]="step2Valid()">
+        <ng-template matStepLabel>Demandes de dispense</ng-template>
+
+        @if (suggestions().length > 0) {
+          <h3 class="section-title">Suggestions automatiques</h3>
+          <div class="item-grid">
+            @for (s of suggestions(); track s.codeUe) {
+              <mat-card appearance="outlined" [class.suggestion-complete]="s.complet" [class.suggestion-partial]="!s.complet">
+                <mat-card-header>
+                  <mat-card-title>{{ s.codeUe }} — {{ s.nomUe }}</mat-card-title>
+                  <mat-card-subtitle>
+                    {{ s.credits }} ECTS —
+                    @if (s.complet) {
+                      <mat-icon class="inline-icon ok">check_circle</mat-icon> Tous les cours présents ({{ s.coursPresents }}/{{ s.coursRequis }})
+                    } @else {
+                      <mat-icon class="inline-icon ko">warning</mat-icon> {{ s.coursPresents }}/{{ s.coursRequis }} cours présents
+                    }
+                  </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <p class="section-label">Cours correspondants :</p>
+                  @for (nom of s.coursCorrespondants; track nom) {
+                    <p class="cours-corresp">{{ nom }}</p>
+                  }
+                </mat-card-content>
+                <mat-card-actions>
+                  @if (s.complet) {
+                    <button mat-button color="primary" (click)="creerDispense(s.codeUe)">
+                      <mat-icon>add_circle</mat-icon> Ajouter cette dispense
+                    </button>
+                  } @else {
+                    <span class="partial-hint">Ajoutez les cours manquants à l'étape 1</span>
+                  }
+                </mat-card-actions>
+              </mat-card>
+            }
+          </div>
+        }
+
+        <h3 class="section-title">Ajouter manuellement</h3>
+        <div class="manual-dispense-row">
+          <mat-form-field>
+            <mat-label>Unité d'enseignement</mat-label>
+            <mat-select [value]="selectedUeCode()"
+                        (selectionChange)="selectedUeCode.set($event.value)">
+              @for (ue of ues(); track ue.code) {
+                <mat-option [value]="ue.code">{{ ue.nom }} ({{ ue.code }})</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button mat-flat-button color="primary"
+                  [disabled]="selectedUeCode() == null"
+                  (click)="creerDispense()">
+            <mat-icon>add</mat-icon> Créer
+          </button>
+        </div>
+
+        @if (dispenses().length === 0) {
+          <p class="empty-msg">Aucune dispense demandée</p>
+        } @else {
+          <div class="item-grid">
+            @for (disp of dispenses(); track disp.id) {
+              <mat-card appearance="outlined">
+                <mat-card-header>
+                  <mat-card-title>{{ disp.codeUe }} — {{ disp.nomUe }}</mat-card-title>
+                  @if (disp.decision) {
+                    <mat-card-subtitle>Décision : {{ disp.decision }}</mat-card-subtitle>
+                  }
+                </mat-card-header>
+                <mat-card-content>
+                  <p class="section-label">Cours justificatifs :</p>
+                  @if (disp.coursJustificatifs && disp.coursJustificatifs.length > 0) {
+                    <div class="chips-row">
+                      @for (cj of disp.coursJustificatifs; track cj.id) {
+                        <mat-chip>{{ cj.codeCours }}</mat-chip>
+                        <button mat-icon-button class="chip-remove"
+                                (click)="delierCours(disp.id!, cj.id!)"
+                                matTooltip="Délier ce cours">
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      }
+                    </div>
+                  } @else {
+                    <p class="empty-sub">Aucun cours lié</p>
+                  }
+
+                  @if (cours().length > 0) {
+                    <div class="lier-row">
+                      <mat-form-field>
+                        <mat-label>Cours à lier</mat-label>
+                        <mat-select [value]="selectedCoursIdMap()[disp.id!]"
+                                    (selectionChange)="setCoursForDispense(disp.id!, $event.value)">
+                          @for (c of cours(); track c.id) {
+                            <mat-option [value]="c.id">{{ c.codeCours }} — {{ c.intitule }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <button mat-button (click)="lierCours(disp.id!)"
+                              [disabled]="selectedCoursIdMap()[disp.id!] == null">
+                        <mat-icon>link</mat-icon> Lier
+                      </button>
+                    </div>
+                  }
+                </mat-card-content>
+                <mat-card-actions>
+                  <button mat-button color="warn" (click)="supprimerDispense(disp.id!)">
+                    <mat-icon>delete</mat-icon> Supprimer
+                  </button>
+                </mat-card-actions>
+              </mat-card>
+            }
+          </div>
+        }
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>
+            <mat-icon>arrow_back</mat-icon> Retour
+          </button>
+          <button mat-flat-button color="primary" matStepperNext [disabled]="!step2Valid()">
+            Continuer <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </mat-step>
+
+      <!-- ==================== STEP 3 : DOCUMENTS ==================== -->
+      <mat-step [completed]="step3Valid()">
+        <ng-template matStepLabel>Documents</ng-template>
+
+        <div class="docs-flex">
+          <div class="doc-zone">
+            <h3 class="doc-section-title">
+              <mat-icon>description</mat-icon> Bulletin de notes
+            </h3>
+            @for (doc of bulletinDocs(); track doc.id) {
+              <div class="doc-row">
+                <button mat-button class="doc-link" (click)="telecharger(doc.id!, doc.originalFilename!)">
+                  <mat-icon>download</mat-icon> {{ doc.originalFilename }}
+                </button>
+                <button mat-icon-button color="warn" (click)="supprimerDocument(doc.id!)" matTooltip="Supprimer">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+            @if (bulletinDocs().length > 0) {
+              <span class="upload-ok"><mat-icon>check_circle</mat-icon></span>
+            } @else {
+              <input type="file" accept=".pdf" class="file-input"
+                     #bulletinInput (change)="onFileSelected($event, 'BULLETIN')">
+              <button mat-button (click)="bulletinInput.click()">
+                <mat-icon>upload</mat-icon> Uploader bulletin (PDF)
+              </button>
+            }
+          </div>
+
+          <div class="doc-zone">
+            <h3 class="doc-section-title">
+              <mat-icon>edit_note</mat-icon> Lettre de motivation
+            </h3>
+            @for (doc of motivationDocs(); track doc.id) {
+              <div class="doc-row">
+                <button mat-button class="doc-link" (click)="telecharger(doc.id!, doc.originalFilename!)">
+                  <mat-icon>download</mat-icon> {{ doc.originalFilename }}
+                </button>
+                <button mat-icon-button color="warn" (click)="supprimerDocument(doc.id!)" matTooltip="Supprimer">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+            @if (motivationDocs().length > 0) {
+              <span class="upload-ok"><mat-icon>check_circle</mat-icon></span>
+            } @else {
+              <input type="file" accept=".pdf" class="file-input"
+                     #motivationInput (change)="onFileSelected($event, 'MOTIVATION')">
+              <button mat-button (click)="motivationInput.click()">
+                <mat-icon>upload</mat-icon> Uploader motivation (PDF)
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>
+            <mat-icon>arrow_back</mat-icon> Retour
+          </button>
+          <button mat-flat-button color="primary" matStepperNext [disabled]="!step3Valid()">
+            Continuer <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </mat-step>
+
+      <!-- ==================== STEP 4 : SOUMETTRE ==================== -->
+      <mat-step>
+        <ng-template matStepLabel>Soumettre</ng-template>
+
+        @if (completude(); as c) {
+          <div class="recap-list">
+            <p [class.ok]="c.bulletinOk" [class.ko]="!c.bulletinOk">
+              <mat-icon>{{ c.bulletinOk ? 'check_circle' : 'cancel' }}</mat-icon> Bulletin fourni
+            </p>
+            <p [class.ok]="c.motivationOk" [class.ko]="!c.motivationOk">
+              <mat-icon>{{ c.motivationOk ? 'check_circle' : 'cancel' }}</mat-icon> Lettre de motivation fournie
+            </p>
+            <p [class.ok]="c.dispensesOk" [class.ko]="!c.dispensesOk">
+              <mat-icon>{{ c.dispensesOk ? 'check_circle' : 'cancel' }}</mat-icon> Au moins une dispense avec cours justificatif
+            </p>
+            @if (c.hasCoursInconnus) {
+              <p [class.ok]="c.coursInconnusOk" [class.ko]="!c.coursInconnusOk">
+                <mat-icon>{{ c.coursInconnusOk ? 'check_circle' : 'cancel' }}</mat-icon> Tous les cours inconnus justifiés
+              </p>
+            } @else {
+              <p class="na">
+                <mat-icon>remove_circle_outline</mat-icon> Aucun cours inconnu (non applicable)
+              </p>
+            }
+          </div>
+
+          @if (c.complet) {
+            <button mat-flat-button color="primary" class="submit-btn" (click)="soumettre()">
+              <mat-icon>send</mat-icon> Soumettre le dossier
+            </button>
+          } @else {
+            <p class="incomplete-msg">Certaines étapes sont incomplètes.</p>
+            <button mat-button (click)="goToStep(0)">
+              <mat-icon>replay</mat-icon> Revoir mon dossier
+            </button>
+          }
+        }
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>
+            <mat-icon>arrow_back</mat-icon> Retour
+          </button>
+        </div>
+      </mat-step>
+
+    </mat-stepper>
+  }
+}
