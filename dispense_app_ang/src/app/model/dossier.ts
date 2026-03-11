@@ -3,8 +3,10 @@ import {User} from './user';
 
 export interface Dossier {
   id: number;
-  date: Date;
-  etat: EtatDossier
-  objetDemande:string;
-  user: User
+  dateCreation: Date;
+  dateSoumis?: Date;
+  etat: EtatDossier;
+  objetDemande: string;
+  complet: boolean;
+  user: User;
 }
