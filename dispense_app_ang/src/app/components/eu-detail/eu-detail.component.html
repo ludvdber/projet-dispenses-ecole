@@ -28,7 +28,7 @@
             Programme
           </mat-panel-title>
         </mat-expansion-panel-header>
-        <div class="ue-description" [innerHTML]="currentUe.prgm"></div>
+        <div class="ue-description" [innerHTML]="safePrgm()"></div>
       </mat-expansion-panel>
 
       @let detail = ueDetail();

@@ -1,5 +1,6 @@
-import {Component, computed, inject, input} from '@angular/core';
+import {Component, computed, inject, input, SecurityContext} from '@angular/core';
 import {rxResource} from '@angular/core/rxjs-interop';
+import {DomSanitizer} from '@angular/platform-browser';
 import {MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle} from '@angular/material/card';
 import {MatIcon} from '@angular/material/icon';
 import {MatProgressBar} from '@angular/material/progress-bar';
@@ -42,6 +43,13 @@ export class EuDetailComponent {
   ue = input<Ue>();
 
   private dispenseService = inject(DispenseService);
+  private sanitizer = inject(DomSanitizer);
+
+  /** Programme HTML sanitisé pour éviter les injections XSS */
+  safePrgm = computed(() => {
+    const prgm = this.ue()?.prgm;
+    return prgm ? this.sanitizer.sanitize(SecurityContext.HTML, prgm) ?? '' : '';
+  });
 
   /** Charge le détail complet de l'UE dès que l'input change */
   private detailResource = rxResource({
