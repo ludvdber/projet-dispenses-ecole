@@ -70,6 +70,18 @@ public class DocumentService {
 			throw new DossierException("err.document.typeMime");
 		}
 
+		// Validation signature PDF (magic bytes %PDF = 0x25504446)
+		try (InputStream check = file.getInputStream()) {
+			byte[] header = new byte[4];
+			if (check.read(header) < 4
+					|| header[0] != 0x25 || header[1] != 0x50
+					|| header[2] != 0x44 || header[3] != 0x46) {
+				throw new DossierException("err.document.typeInvalide");
+			}
+		} catch (IOException e) {
+			throw new DossierException("err.document.uploadFailed");
+		}
+
 		// Validation taille
 		if (file.getSize() > maxSize) {
 			throw new DossierException("err.document.tailleTrop");
@@ -107,7 +119,9 @@ public class DocumentService {
 			Path dossierDir = uploadDir.resolve(String.valueOf(dossier.getId()));
 			Files.createDirectories(dossierDir);
 
-			String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+			// Nettoyer le nom de fichier (protection path traversal)
+			String safeName = Paths.get(file.getOriginalFilename()).getFileName().toString();
+			String filename = System.currentTimeMillis() + "_" + safeName;
 			Path target = dossierDir.resolve(filename);
 
 			// Copier + calculer hash SHA-256 en une passe
