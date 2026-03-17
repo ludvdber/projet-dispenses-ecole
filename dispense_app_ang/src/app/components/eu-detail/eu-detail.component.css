@@ -32,7 +32,7 @@
   margin: 8px 0 0;
 }
 
-/* Styles pour le programme HTML injecté via [innerHTML] */
+/* Styles pour le programme HTML injecté via [innerHTML]*/
 :host ::ng-deep .ue-description ul.prgm {
   list-style: none;
   padding: 0;

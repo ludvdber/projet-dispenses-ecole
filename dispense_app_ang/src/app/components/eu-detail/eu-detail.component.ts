@@ -11,13 +11,7 @@ import {DispenseService} from '../../services/dispense.service';
 import {of} from 'rxjs';
 
 /**
- * Affiche le détail d'une UE sélectionnée, incluant son programme
- * et la liste complète de ses acquis d'apprentissage chargés depuis
- * GET /api/ue/detail/{code}.
- *
- * Utilise rxResource Angular 21 pour recharger automatiquement
- * le détail lorsque l'UE change via InputSignal.
- *
+ * Détail d'une UE : programme et acquis d'apprentissage.
  * @author Ludovic
  */
 @Component({
@@ -39,7 +33,7 @@ import {of} from 'rxjs';
   styleUrl: './eu-detail.component.css',
 })
 export class EuDetailComponent {
-  /** UE sélectionnée transmise par SectionComposant via liaison de propriété. */
+  /** UE sélectionnée (input du composant parent) */
   ue = input<Ue>();
 
   private dispenseService = inject(DispenseService);

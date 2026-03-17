@@ -9,7 +9,7 @@ import org.isfce.pid.dto.UEFullDto;
 import org.isfce.pid.dto.SectionDto;
 import org.isfce.pid.dto.UEDto;
 import org.isfce.pid.mapper.UEMapper;
-import org.springframework.cache.annotation.Cacheable;
+
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -57,7 +57,6 @@ public class UEService {
 	public List<UEDto> getListeUEBySection(String section) {
 		 return daoUE.findAllUEBySection_Dto(section);
 	}
-	@Cacheable
 	public List<SectionDto> getListeSections(){
 		return daoSection.findAllSection_Dto();
 	}

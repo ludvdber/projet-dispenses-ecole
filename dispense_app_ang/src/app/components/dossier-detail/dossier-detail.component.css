@@ -210,6 +210,13 @@
   padding: 1rem;
 }
 
+.doc-hint {
+  font-size: 0.82rem;
+  color: #666;
+  font-style: italic;
+  margin: -0.25rem 0 0.5rem 0;
+}
+
 .doc-section-title {
   display: flex;
   align-items: center;

@@ -387,6 +387,9 @@
             <h3 class="doc-section-title">
               <mat-icon>description</mat-icon> Bulletin de notes
             </h3>
+            <p class="doc-hint">
+              Si vos cours proviennent de plusieurs écoles, regroupez tous les bulletins dans un seul fichier PDF.
+            </p>
             @for (doc of bulletinDocs(); track doc.id) {
               <div class="doc-row">
                 <button mat-button class="doc-link" (click)="telecharger(doc.id!, doc.originalFilename!)">

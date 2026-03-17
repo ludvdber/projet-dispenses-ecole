@@ -12,6 +12,10 @@ import {Ecole} from '../model/ecole';
 import {CoursEcole} from '../model/cours-ecole';
 import {Ue} from '../model/ue';
 
+/**
+ * Service HTTP pour les opérations sur les dossiers, cours, dispenses, documents et analyses.
+ * @author Ludovic
+ */
 @Injectable({
   providedIn: 'root',
 })

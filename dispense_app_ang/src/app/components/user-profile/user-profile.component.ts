@@ -7,9 +7,7 @@ import {MatDivider} from '@angular/material/divider';
 import {MatProgressBar} from '@angular/material/progress-bar';
 
 /**
- * Affiche le profil de l'utilisateur connecté (données Keycloak).
- * Utilise resource() Angular 21 pour le chargement asynchrone du profil.
- *
+ * Affiche le profil de l'utilisateur connecté.
  * @author Ludovic
  */
 @Component({

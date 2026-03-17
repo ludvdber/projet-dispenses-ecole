@@ -6,6 +6,10 @@ import {Observable} from 'rxjs';
 import {Ue} from '../model/ue';
 import {UeFullDto} from '../model/ue-full-dto';
 
+/**
+ * Service HTTP pour la consultation des sections et UE.
+ * @author Ludovic
+ */
 @Injectable({
   providedIn: 'root',
 })
