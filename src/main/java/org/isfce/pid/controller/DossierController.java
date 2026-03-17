@@ -6,7 +6,6 @@ import java.util.Locale;
 import org.isfce.pid.controller.error.DossierException;
 import org.isfce.pid.dto.CompletudeDossier;
 import org.isfce.pid.dto.DossierDto;
-import org.isfce.pid.model.User;
 import org.isfce.pid.service.DossierService;
 import org.isfce.pid.service.UserService;
 import org.springframework.context.MessageSource;
@@ -35,14 +34,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DossierController {
 
-	DossierService dossierService;
-
-	UserService userService;
-
-	private MessageSource bundle;
+	private final DossierService dossierService;
+	private final UserService userService;
+	private final MessageSource bundle;
 
 	public DossierController(DossierService dossierService, UserService userService, MessageSource bundle) {
-		super();
 		this.dossierService = dossierService;
 		this.userService = userService;
 		this.bundle = bundle;
@@ -50,23 +46,14 @@ public class DossierController {
 
 	/**
 	 * Crée un dossier pour l'étudiant authentifié.
-	 * Lazy provisioning du user si nécessaire.
+	 * Provisionne le user depuis Keycloak si nécessaire.
 	 */
 	@PreAuthorize(value = "hasRole('ETUDIANT')")
 	@PostMapping("create")
 	public ResponseEntity<DossierDto> createDossier(@RequestParam("objetDemande") String objetDemande,
 			Locale locale, JwtAuthenticationToken auth) throws NoSuchMessageException, DossierException {
+		userService.provisionFromJwt(auth);
 		String etu = auth.getToken().getClaimAsString("preferred_username");
-
-		// Lazy provisioning
-		if (!userService.existByUsername(etu)) {
-			var token = auth.getToken();
-			String email = token.getClaimAsString("email");
-			String nom = token.getClaimAsString("family_name");
-			String prenom = token.getClaimAsString("given_name");
-			log.info("Provisionnement automatique du user '{}'", etu);
-			userService.addUser(new User(etu, email, nom, prenom));
-		}
 
 		try {
 			return ResponseEntity.ok(dossierService.createDossier(objetDemande, etu));

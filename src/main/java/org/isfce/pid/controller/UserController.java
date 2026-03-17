@@ -3,7 +3,7 @@ package org.isfce.pid.controller;
 import java.util.List;
 
 import org.isfce.pid.dto.UserDto;
-import org.isfce.pid.model.User;
+
 import org.isfce.pid.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UserController {
 
-	UserService userService;
+	private final UserService userService;
 
 	public UserController(UserService userService) {
 		this.userService = userService;
@@ -58,22 +58,13 @@ public class UserController {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 		}
 
-		var oUser = userService.getUserById(username);
-		log.debug("getUserInfo username={}", username);
-		User userEntity = oUser.orElse(null);
-
-		// Crée l'utilisateur s'il n'existe pas et que
-		// l'utilisateur connecté correspond au username demandé
-		if (oUser.isEmpty() && auth.getName().equals(username)) {
-			var token = auth.getToken();
-			String email  = token.getClaimAsString("email");
-			String nom    = token.getClaimAsString("family_name");
-			String prenom = token.getClaimAsString("given_name");
-			userEntity = userService.addUser(new User(username, email, nom, prenom));
+		// Lazy provisioning si l'utilisateur consulte son propre profil
+		if (auth.getName().equals(username)) {
+			userService.provisionFromJwt(auth);
 		}
-		if (userEntity != null)
-			return ResponseEntity.ok(new UserDto(username, userEntity.getEmail(), userEntity.getNom(), userEntity.getPrenom()));
-		return ResponseEntity.notFound().build();
+		return userService.getUserById(username)
+				.map(u -> ResponseEntity.ok(new UserDto(username, u.getEmail(), u.getNom(), u.getPrenom())))
+				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
 }

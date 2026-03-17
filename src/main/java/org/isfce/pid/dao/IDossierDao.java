@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.isfce.pid.model.Dossier;
 import org.isfce.pid.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.NativeQuery;
+
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -21,14 +21,10 @@ public interface IDossierDao extends JpaRepository<Dossier, Long> {
 	@Query("from TDOSSIER d where d.user=:user and d.etat NOT IN (org.isfce.pid.model.EtatDossier.CLOTURE_ACCORDE, org.isfce.pid.model.EtatDossier.CLOTURE_REFUSE)")
 	Optional<Dossier> findDossierEnCours(@Param("user") User user);
 
-	@NativeQuery("""
-			select count(*) from TDOSSIER d where d.FK_USER=:username and d.etat NOT IN ('CLOTURE_ACCORDE','CLOTURE_REFUSE')
-						""")
+	@Query("SELECT COUNT(d) FROM TDOSSIER d WHERE d.user.username = :username AND d.etat NOT IN (org.isfce.pid.model.EtatDossier.CLOTURE_ACCORDE, org.isfce.pid.model.EtatDossier.CLOTURE_REFUSE)")
 	int getNbDossierEnCours(@Param("username") String userName);
 
-	@NativeQuery("""
-			select count(*) from TDOSSIER d where d.FK_USER=:username and d.etat IN ('CLOTURE_ACCORDE','CLOTURE_REFUSE')
-						""")
+	@Query("SELECT COUNT(d) FROM TDOSSIER d WHERE d.user.username = :username AND d.etat IN (org.isfce.pid.model.EtatDossier.CLOTURE_ACCORDE, org.isfce.pid.model.EtatDossier.CLOTURE_REFUSE)")
 	int getNbDossierCloture(@Param("username") String userName);
 
 	int countByUser(User user);

@@ -1,5 +1,6 @@
 package org.isfce.pid.user;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -81,6 +82,10 @@ class TestUserController {
 	@Test
 	void testGetUserInfoNew() throws Exception {
 		User et2 = new User("et2", "et2@isfce.be", "Nom Et2", "Prénom Et2");
+		// Après provisionFromJwt, le user existe en BDD
+		when(userServiceMock.provisionFromJwt(any())).thenReturn(et2);
+		when(userServiceMock.getUserById("et2")).thenReturn(Optional.of(et2));
+
 		Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").claim("sub", "et2")
 				.claim("scope", "openid email profile").claim("preferred_username", "et2")
 				.claim("given_name", "Prénom Et2").claim("family_name", "Nom Et2").claim("email", "et2@isfce.be")
@@ -90,8 +95,8 @@ class TestUserController {
 
 		mockMvc.perform(get("/api/user/profile/et2").with(authentication(token))).andExpect(status().isOk())
 				.andExpect(jsonPath("username").value("et2")).andExpect(jsonPath("email").value("et2@isfce.be"));
+		verify(userServiceMock).provisionFromJwt(any());
 		verify(userServiceMock).getUserById("et2");
-		verify(userServiceMock).addUser(et2);
 	}
 
 	@Test //
