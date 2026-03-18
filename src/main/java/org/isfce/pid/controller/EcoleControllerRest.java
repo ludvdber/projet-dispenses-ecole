@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Contrôleur REST pour les écoles (base de connaissances).
@@ -22,7 +22,7 @@ import lombok.AllArgsConstructor;
 @RestController
 @RequestMapping(path = "/api/ecole", produces = "application/json")
 @PreAuthorize("hasAnyRole('ETUDIANT','ADMIN')")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class EcoleControllerRest {
 
 	private final EcoleService ecoleService;

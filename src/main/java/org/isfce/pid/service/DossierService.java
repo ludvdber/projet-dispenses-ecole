@@ -3,8 +3,9 @@ package org.isfce.pid.service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
-import org.isfce.pid.controller.error.DossierException;
+import org.isfce.pid.exception.DossierException;
 import org.isfce.pid.dao.IDispenseCoursDao;
 import org.isfce.pid.dao.IDispenseDao;
 import org.isfce.pid.dao.IDocumentDao;
@@ -30,13 +31,16 @@ import lombok.AllArgsConstructor;
  * Service de gestion des dossiers de dispense (création, complétude, soumission).
  * @author Ludovic
  */
-// L'analyse null d'Eclipse génère des faux positifs sur les retours de Spring Data JPA
-// (save(), findById()…) dont les @NonNull ne sont pas toujours lus depuis le classpath.
+
 @SuppressWarnings("null")
 @Service
 @AllArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class DossierService {
+	/** États terminaux (clôturés) — un dossier actif est tout dossier hors de ces états. */
+	private static final Set<EtatDossier> ETATS_CLOTURES = Set.of(
+			EtatDossier.CLOTURE_ACCORDE, EtatDossier.CLOTURE_REFUSE);
+
 	private IDossierDao daoDossier;
 	private IUserDao daoUser;
 	private IDispenseDao daoDispense;
@@ -50,9 +54,10 @@ public class DossierService {
 	 * @return
 	 * @throws DossierException si possède déjà un dossier
 	 */
-	public Dossier createDossier(User user, String objetDemande) throws DossierException {
+	@Transactional
+	public Dossier createDossier(User user, String objetDemande) {
 		// vérifie s'il existe un dossier en cours ==> exception
-		if (daoDossier.getNbDossierEnCours(user.getUsername()) > 0) {
+		if (daoDossier.countByUserUsernameAndEtatNotIn(user.getUsername(), ETATS_CLOTURES) > 0) {
 			throw new DossierException("err.dossier.enCours");
 		}
 		Dossier dossier = Dossier.builder().dateCreation(LocalDate.now()).etat(EtatDossier.DEMANDE_EN_COURS).user(user)
@@ -65,7 +70,8 @@ public class DossierService {
 	 * Crée un dossier à partir du username.
 	 * Vérifie qu'il n'y a pas de dossier actif pour cet étudiant.
 	 */
-	public DossierDto createDossier(String objetDemande, String username) throws DossierException {
+	@Transactional
+	public DossierDto createDossier(String objetDemande, String username) {
 		User user = daoUser.findById(username)
 				.orElseThrow(() -> new DossierException("err.dossier.notFound"));
 		Dossier dossier = createDossier(user, objetDemande);
@@ -73,7 +79,7 @@ public class DossierService {
 	}
 
 	public Optional<Dossier> getDossierEnCours(User user) {
-		return daoDossier.findDossierEnCours(user);
+		return daoDossier.findFirstByUserAndEtatNotIn(user, ETATS_CLOTURES);
 	}
 
 	/**
@@ -88,7 +94,7 @@ public class DossierService {
 	 * Retourne le détail d'un dossier par ID.
 	 * Vérifie que le dossier appartient bien à l'utilisateur authentifié.
 	 */
-	public DossierDto getDossier(Long id, String username) throws DossierException {
+	public DossierDto getDossier(Long id, String username) {
 		Dossier dossier = daoDossier.findById(id)
 				.orElseThrow(() -> new DossierException("err.dossier.notFound"));
 		if (!dossier.getUser().getUsername().equals(username)) {
@@ -147,7 +153,8 @@ public class DossierService {
 	/**
 	 * Soumet un dossier : vérifie ownership, état, complétude, puis change l'état.
 	 */
-	public DossierDto submitDossier(Long dossierId, String username) throws DossierException {
+	@Transactional
+	public DossierDto submitDossier(Long dossierId, String username) {
 		Dossier dossier = daoDossier.findById(dossierId)
 				.orElseThrow(() -> new DossierException("err.dossier.notFound"));
 		if (!dossier.getUser().getUsername().equals(username)) {

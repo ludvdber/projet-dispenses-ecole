@@ -54,14 +54,14 @@ public interface UEMapper {
 	default Acquis toAcquis(AcquisFullDto dto, String codeUE) {
 		if (dto == null)
 			return null;
-		return new Acquis(new Acquis.IdAcquis(codeUE, dto.getNum()), null, dto.getAcquis(), dto.getPourcentage());
+		return new Acquis(new Acquis.IdAcquis(codeUE, dto.num()), null, dto.acquis(), dto.pourcentage());
 	}
 
 	// Map AcquisList from dto
 	default List<Acquis> mapAcquisList(UEFullDto dto) {
-		if (dto.getAcquis() == null)
+		if (dto.acquis() == null)
 			return List.of();
-		return dto.getAcquis().stream().map(a -> toAcquis(a, dto.getCode())) // utilisation automatique du codeUE
+		return dto.acquis().stream().map(a -> toAcquis(a, dto.code())) // utilisation automatique du codeUE
 				.collect(Collectors.toList());
 	}
 
@@ -73,7 +73,7 @@ public interface UEMapper {
 
 	/************************ Mapping DTO avec FKE vers Acquis  **************************************/
 	// DTO==>ACQUIS
-	@Mapping(target = "id", expression = "java(new Acquis.IdAcquis(acquisDto.getFkUE(), acquisDto.getNum()))")
+	@Mapping(target = "id", expression = "java(new Acquis.IdAcquis(acquisDto.fkUE(), acquisDto.num()))")
 	@Mapping(target = "ue", ignore = true)
 	Acquis toAcquis(AcquisDto acquisDto);
 

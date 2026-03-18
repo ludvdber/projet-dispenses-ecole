@@ -62,12 +62,12 @@ public class TestUeDto {
 		UE pid = UE.builder().code("IPID").ects(9).nbPeriodes(100).nom("PROJET D’INTEGRATION DE DEVELOPPEMENT")
 				.prgm("prgm").ref("ABCD").build();
 		UEDto pidLazyDto = mapper.toUELazyDto(pid);
-		assertEquals("IPID", pidLazyDto.getCode());
-		assertEquals(9, pidLazyDto.getEcts());
-		assertEquals(100, pidLazyDto.getNbPeriodes());
-		assertEquals("PROJET D’INTEGRATION DE DEVELOPPEMENT", pidLazyDto.getNom());
-		assertEquals("prgm", pidLazyDto.getPrgm());
-		assertEquals("ABCD", pidLazyDto.getRef());
+		assertEquals("IPID", pidLazyDto.code());
+		assertEquals(9, pidLazyDto.ects());
+		assertEquals(100, pidLazyDto.nbPeriodes());
+		assertEquals("PROJET D’INTEGRATION DE DEVELOPPEMENT", pidLazyDto.nom());
+		assertEquals("prgm", pidLazyDto.prgm());
+		assertEquals("ABCD", pidLazyDto.ref());
 
 		// TestDTO to UE
 
@@ -85,15 +85,15 @@ public class TestUeDto {
 		//vers DtoFull
 		UEFullDto pidDto=mapper.toUEFullDto(pid);
 		//
-		assertEquals("IPID", pidDto.getCode());
-		assertEquals(9, pidDto.getEcts());
-		assertEquals(100, pidDto.getNbPeriodes());
-		assertEquals("PROJET D’INTEGRATION DE DEVELOPPEMENT", pidDto.getNom());
-		assertEquals("prgm", pidDto.getPrgm());
-		assertEquals("ABCD", pidDto.getRef());
-		assertEquals(2,pidDto.getAcquis().size());
+		assertEquals("IPID", pidDto.code());
+		assertEquals(9, pidDto.ects());
+		assertEquals(100, pidDto.nbPeriodes());
+		assertEquals("PROJET D’INTEGRATION DE DEVELOPPEMENT", pidDto.nom());
+		assertEquals("prgm", pidDto.prgm());
+		assertEquals("ABCD", pidDto.ref());
+		assertEquals(2,pidDto.acquis().size());
 		//vérifie si les acquis sont bien des AcquisDto
-		assertEquals(AcquisFullDto.class,pidDto.getAcquis().get(0).getClass());
+		assertEquals(AcquisFullDto.class,pidDto.acquis().get(0).getClass());
 
 		//Test DtoFull ==> UE
 		UE pid2=mapper.fromUEFullDto(pidDto);
