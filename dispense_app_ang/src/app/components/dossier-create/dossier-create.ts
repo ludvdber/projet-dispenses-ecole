@@ -1,4 +1,5 @@
-import {Component, inject} from '@angular/core';
+import {Component, DestroyRef, inject} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Router} from '@angular/router';
@@ -23,6 +24,7 @@ export class DossierCreate {
   private dossierService = inject(DossierService);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   constructor() {
     const now = new Date();
@@ -31,7 +33,9 @@ export class DossierCreate {
     const yyyy = now.getFullYear();
     const objetDemande = `Demande de dispense du ${dd}/${mm}/${yyyy}`;
 
-    this.dossierService.createDossier(objetDemande).subscribe({
+    this.dossierService.createDossier(objetDemande).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (dossier) => {
         this.router.navigate(['/dossier', dossier.id]);
       },

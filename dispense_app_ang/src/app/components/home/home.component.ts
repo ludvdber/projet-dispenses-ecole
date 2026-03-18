@@ -22,7 +22,7 @@ import {AuthService} from '../../auth/auth.service';
 export class HomeComponent {
   private authService = inject(AuthService);
 
-  authenticated = this.authService.isAuthenticated();
+  authenticated = this.authService.isAuthenticated;
 
   login() {
     this.authService.login();

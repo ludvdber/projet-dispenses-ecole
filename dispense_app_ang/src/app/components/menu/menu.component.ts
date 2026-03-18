@@ -22,7 +22,7 @@ import {MatDivider} from '@angular/material/divider';
 export class MenuComponent {
   private authService = inject(AuthService);
 
-  protected authenticated = this.authService.isAuthenticated();
+  protected authenticated = this.authService.isAuthenticated;
 
   login() {
     this.authService.login();
@@ -33,6 +33,6 @@ export class MenuComponent {
   }
 
   getUsername() {
-    return this.authService.username;
+    return this.authService.username();
   }
 }

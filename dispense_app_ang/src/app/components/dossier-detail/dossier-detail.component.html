@@ -34,15 +34,6 @@
           <span class="completude-item" [class.ok]="c.dispensesOk" [class.ko]="!c.dispensesOk">
             <mat-icon>{{ c.dispensesOk ? 'check_circle' : 'cancel' }}</mat-icon> Dispenses
           </span>
-          @if (c.hasCoursInconnus) {
-            <span class="completude-item" [class.ok]="c.coursInconnusOk" [class.ko]="!c.coursInconnusOk">
-              <mat-icon>{{ c.coursInconnusOk ? 'check_circle' : 'cancel' }}</mat-icon> Cours inconnus
-            </span>
-          } @else {
-            <span class="completude-item na">
-              <mat-icon>remove_circle_outline</mat-icon> Cours inconnus
-            </span>
-          }
         </div>
       </mat-card-content>
     </mat-card>
@@ -462,15 +453,6 @@
             <p [class.ok]="c.dispensesOk" [class.ko]="!c.dispensesOk">
               <mat-icon>{{ c.dispensesOk ? 'check_circle' : 'cancel' }}</mat-icon> Au moins une dispense avec cours justificatif
             </p>
-            @if (c.hasCoursInconnus) {
-              <p [class.ok]="c.coursInconnusOk" [class.ko]="!c.coursInconnusOk">
-                <mat-icon>{{ c.coursInconnusOk ? 'check_circle' : 'cancel' }}</mat-icon> Tous les cours inconnus justifiés
-              </p>
-            } @else {
-              <p class="na">
-                <mat-icon>remove_circle_outline</mat-icon> Aucun cours inconnu (non applicable)
-              </p>
-            }
           </div>
 
           @if (c.complet) {

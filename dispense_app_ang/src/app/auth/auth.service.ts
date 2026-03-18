@@ -1,4 +1,4 @@
-import {effect, inject, Injectable, signal} from '@angular/core';
+import {computed, effect, inject, Injectable, signal} from '@angular/core';
 import Keycloak from 'keycloak-js';
 import {KEYCLOAK_EVENT_SIGNAL, KeycloakEventType, ReadyArgs, typeEventArgs} from 'keycloak-angular';
 
@@ -6,47 +6,44 @@ import {KEYCLOAK_EVENT_SIGNAL, KeycloakEventType, ReadyArgs, typeEventArgs} from
   providedIn: 'root',
 })
 export class AuthService {
-  public authenticated = signal(false);
-  username: string | undefined = "";
   private readonly keycloak = inject(Keycloak);
   private readonly keycloakSignal = inject(KEYCLOAK_EVENT_SIGNAL);
+
+  /** État d'authentification réactif */
+  readonly authenticated = signal(false);
+  /** Nom d'utilisateur réactif */
+  readonly username = signal('');
+
+  /** Signal dérivé pour lecture dans les templates */
+  readonly isAuthenticated = computed(() => this.authenticated());
 
   constructor() {
     effect(() => {
       const keycloakEvent = this.keycloakSignal();
 
       if (keycloakEvent.type === KeycloakEventType.Ready) {
-        let connected = typeEventArgs<ReadyArgs>(keycloakEvent.args)
+        const connected = typeEventArgs<ReadyArgs>(keycloakEvent.args);
 
         if (connected) {
           this.keycloak.loadUserProfile().then(userProfile => {
-              this.username = userProfile.username;
-              this.authenticated.set(connected);
-            }
-          ).catch(
-            error => {
-              this.username = "";
-            }
-          )
-
+            this.username.set(userProfile.username ?? '');
+            this.authenticated.set(true);
+          }).catch(() => {
+            this.username.set('');
+            this.authenticated.set(false);
+          });
+        } else {
+          this.authenticated.set(false);
+          this.username.set('');
         }
       }
 
       if (keycloakEvent.type === KeycloakEventType.AuthLogout) {
-        this.username = ""
+        this.authenticated.set(false);
+        this.username.set('');
       }
-
     });
   }
-
-  isAuthenticated() {
-    return this.authenticated;
-  }
-
-  getUsername() {
-    return this.username
-  }
-
 
   login() {
     this.keycloak.login();

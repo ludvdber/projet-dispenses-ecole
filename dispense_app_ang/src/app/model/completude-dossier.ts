@@ -3,6 +3,4 @@ export interface CompletudeDossier {
   bulletinOk: boolean;
   motivationOk: boolean;
   dispensesOk: boolean;
-  coursInconnusOk: boolean;
-  hasCoursInconnus: boolean;
 }
