@@ -26,9 +26,9 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasAnyRole('ETUDIANT','ADMIN')")
 public class UEControllerRest {
 
-	private UEService ueService;
+	private final UEService ueService;
 
-	private MessageSource bundle;
+	private final MessageSource bundle;
 
 	public UEControllerRest(UEService ueService, MessageSource bundle) {
 		this.ueService = ueService;
