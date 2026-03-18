@@ -1,7 +1,6 @@
 package org.isfce.pid.user;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
@@ -30,13 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @SuppressWarnings("null")
 @SpringBootTest // lance le contexte Spring
 @AutoConfigureMockMvc // Crée un mock mvc
-@ActiveProfiles(profiles = "testU") // active le profile "testU"
-//Pas utilisé pour l'instant dans ce test car pas d'accès à la BD
-//@Sql(scripts = { "/dataTestU.sql" }, config = @SqlConfig(encoding = "utf-8")
-// fichier SQL avec les données pour les tests
-//permet de préciser d'autres paramètres de configuration
-//,config = @SqlConfig(encoding = "utf-8", transactionMode =TransactionMode.ISOLATED)
-//)
+@ActiveProfiles(profiles = "testU")
 class TestUserController {
 
 	@Autowired
@@ -47,20 +40,12 @@ class TestUserController {
 
 	@BeforeEach
 	void setUp() {
-		// Configuration du mock pour renvoyer un utilisateur spécifique
 		User et1 = new User("et1", "et1@isfce.be", "Nom Et1", "Prénom Et1");
-		User et2 = new User("et2", "et2@isfce.be", "Nom Et2", "Prénom Et2");
-		User val = new User("vo", "vo@isfce.be", "VO", "Didier");
-
-//		when(userServiceMock.existByUsername("et1")).thenReturn(true);
-//		when(userServiceMock.existByUsername("et2")).thenReturn(false);
-//		when(userServiceMock.existByUsername("val")).thenReturn(true);
+		User vo = new User("vo", "vo@isfce.be", "VO", "Didier");
 
 		when(userServiceMock.getUserById("et1")).thenReturn(Optional.of(et1));
 		when(userServiceMock.getUserById("et2")).thenReturn(Optional.empty());
-		when(userServiceMock.getUserById("val")).thenReturn(Optional.of(val));
-
-		when(userServiceMock.addUser(et2)).thenReturn(et2);
+		when(userServiceMock.getUserById("val")).thenReturn(Optional.of(vo));
 	}
 
 	@Test //
@@ -76,7 +61,7 @@ class TestUserController {
 				.andExpect(jsonPath("username").value("et1")).andExpect(jsonPath("email").value("et1@isfce.be"));
 
 		verify(userServiceMock).getUserById("et1");
-		verify(userServiceMock, times(0)).addUser(null);
+
 	}
 
 	@Test
@@ -110,7 +95,7 @@ class TestUserController {
 		mockMvc.perform(get("/api/user/profile/et1").with(authentication(token))).andExpect(status().isOk())
 				.andExpect(jsonPath("username").value("et1")).andExpect(jsonPath("email").value("et1@isfce.be"));
 		verify(userServiceMock).getUserById("et1");
-		verify(userServiceMock, times(0)).addUser(null);
+
 	}
 
 	@Test // info d'user qui n'existe pas
@@ -124,6 +109,6 @@ class TestUserController {
 		mockMvc.perform(get("/api/user/profile/brol").with(authentication(token))).andExpect(status().isNotFound());
 
 		verify(userServiceMock).getUserById("brol");
-		verify(userServiceMock, times(0)).addUser(null);
+
 	}
 }
