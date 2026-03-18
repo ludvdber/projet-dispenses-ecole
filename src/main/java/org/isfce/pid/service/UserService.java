@@ -22,22 +22,20 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class UserService {
-	IUserDao daoUser;
+	private final IUserDao daoUser;
 
 	public UserService(IUserDao daoUser) {
 		this.daoUser = daoUser;
 	}
 
 	public List<UserDto> getAllUserDto() {
-		return daoUser.getAllUserDto();
+		return daoUser.findAll().stream()
+				.map(u -> new UserDto(u.getUsername(), u.getEmail(), u.getNom(), u.getPrenom()))
+				.toList();
 	}
 
 	public Optional<User> getUserById(String username) {
 		return daoUser.findById(username);
-	}
-
-	public User addUser(User user) {
-		return daoUser.save(user);
 	}
 
 	public boolean existByUsername(String username) {
