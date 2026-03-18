@@ -64,30 +64,8 @@ public class DocumentService {
 	public DocumentDto uploadDocument(Long dossierId, Long coursEtudiantId,
 			TypeDoc typeDoc, MultipartFile file, String username) {
 
-		// Validation type MIME
-		String contentType = file.getContentType();
-		if (contentType == null || !contentType.equals("application/pdf")) {
-			throw new DossierException("err.document.typeMime");
-		}
+		validatePdfFile(file);
 
-		// Validation signature PDF (magic bytes %PDF = 0x25504446)
-		try (InputStream check = file.getInputStream()) {
-			byte[] header = new byte[4];
-			if (check.read(header) < 4
-					|| header[0] != 0x25 || header[1] != 0x50
-					|| header[2] != 0x44 || header[3] != 0x46) {
-				throw new DossierException("err.document.typeInvalide");
-			}
-		} catch (IOException e) {
-			throw new DossierException("err.document.uploadFailed");
-		}
-
-		// Validation taille
-		if (file.getSize() > maxSize) {
-			throw new DossierException("err.document.tailleTrop");
-		}
-
-		// Validation cible (XOR dossierId / coursEtudiantId)
 		if (dossierId == null && coursEtudiantId == null) {
 			throw new DossierException("err.document.cibleManquante");
 		}
@@ -144,7 +122,7 @@ public class DocumentService {
 			doc.setTypeDoc(typeDoc);
 			doc.setOriginalFilename(file.getOriginalFilename());
 			doc.setCheminRelatif(cheminRelatif);
-			doc.setTypeMime(contentType);
+			doc.setTypeMime(file.getContentType());
 			doc.setTaille(file.getSize());
 			doc.setDateDepot(LocalDateTime.now());
 			doc.setHashSha256(hash);
@@ -243,6 +221,28 @@ public class DocumentService {
 			deletePhysicalFile(doc);
 		}
 		daoDocument.deleteByCoursEtudiantId(coursEtudiantId);
+	}
+
+	private void validatePdfFile(MultipartFile file) {
+		String contentType = file.getContentType();
+		if (contentType == null || !contentType.equals("application/pdf")) {
+			throw new DossierException("err.document.typeMime");
+		}
+
+		try (InputStream check = file.getInputStream()) {
+			byte[] header = new byte[4];
+			if (check.read(header) < 4
+					|| header[0] != 0x25 || header[1] != 0x50
+					|| header[2] != 0x44 || header[3] != 0x46) {
+				throw new DossierException("err.document.typeInvalide");
+			}
+		} catch (IOException e) {
+			throw new DossierException("err.document.uploadFailed");
+		}
+
+		if (file.getSize() > maxSize) {
+			throw new DossierException("err.document.tailleTrop");
+		}
 	}
 
 	private void deletePhysicalFile(Document doc) {

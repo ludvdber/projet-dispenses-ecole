@@ -23,7 +23,7 @@ import org.isfce.pid.model.UE;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Service métier pour les demandes de dispense.
@@ -32,16 +32,16 @@ import lombok.AllArgsConstructor;
  */
 @SuppressWarnings("null")
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Transactional
 public class DispenseService {
 
-	private IDossierDao daoDossier;
-	private IDispenseDao daoDispense;
-	private IDispenseCoursDao daoDispenseCours;
-	private ICoursEtudiantDao daoCoursEtudiant;
-	private ICorrCoursUeDao daoCorrCoursUe;
-	private UeDao daoUe;
+	private final IDossierDao daoDossier;
+	private final IDispenseDao daoDispense;
+	private final IDispenseCoursDao daoDispenseCours;
+	private final ICoursEtudiantDao daoCoursEtudiant;
+	private final ICorrCoursUeDao daoCorrCoursUe;
+	private final UeDao daoUe;
 
 	/**
 	 * Crée une dispense pour une UE dans un dossier.
@@ -168,45 +168,51 @@ public class DispenseService {
 	}
 
 	private DispenseDto toDto(Dispense d, List<CoursEtudiantDto> justificatifs) {
-		// Correspondance reconnue = chaque cours justificatif pointe vers l'UE
-		// ET tous les cours requis de la correspondance sont présents
-		String ueCode = d.getUe().getCode();
-		boolean reconnue = !justificatifs.isEmpty();
-		if (reconnue) {
-			List<CoursEtudiant> coursEntities = daoDispenseCours.findByDispenseId(d.getId())
-					.stream().map(DispenseCours::getCoursEtudiant).toList();
-			// Vérifier que chaque cours lié a un CorrCours pointant vers cette UE
-			reconnue = coursEntities.stream().allMatch(c ->
-					c.getCorrCours() != null &&
-					c.getCorrCours().getUesISFCE().stream()
-							.anyMatch(ccu -> ccu.getUe().getCode().equals(ueCode)));
-			// Vérifier la complétude : tous les cours requis de la correspondance sont présents
-			if (reconnue) {
-				Set<Long> correspondanceIds = coursEntities.stream()
-						.filter(c -> c.getCorrCours() != null)
-						.map(c -> c.getCorrCours().getCorrespondance().getId())
-						.collect(Collectors.toSet());
-				for (Long corrId : correspondanceIds) {
-					long requis = daoCorrCoursUe.countByUeCodeAndCorrCoursCorrespondanceId(ueCode, corrId);
-					long presents = coursEntities.stream()
-							.filter(c -> c.getCorrCours() != null
-									&& c.getCorrCours().getCorrespondance().getId().equals(corrId))
-							.count();
-					if (presents < requis) {
-						reconnue = false;
-						break;
-					}
-				}
-			}
-		}
+		boolean reconnue = !justificatifs.isEmpty()
+				&& checkReconnaissance(d.getId(), d.getUe().getCode());
 		return new DispenseDto(
 				d.getId(),
 				d.getDossier().getId(),
-				ueCode,
+				d.getUe().getCode(),
 				d.getUe().getNom(),
 				d.getDecision(),
 				justificatifs,
 				reconnue);
+	}
+
+	private boolean checkReconnaissance(Long dispenseId, String ueCode) {
+		List<CoursEtudiant> coursEntities = daoDispenseCours.findByDispenseId(dispenseId)
+				.stream().map(DispenseCours::getCoursEtudiant).toList();
+
+		if (!allCoursPointToUe(coursEntities, ueCode)) {
+			return false;
+		}
+		return allCorrespondancesComplete(coursEntities, ueCode);
+	}
+
+	private boolean allCoursPointToUe(List<CoursEtudiant> cours, String ueCode) {
+		return cours.stream().allMatch(c ->
+				c.getCorrCours() != null &&
+				c.getCorrCours().getUesISFCE().stream()
+						.anyMatch(ccu -> ccu.getUe().getCode().equals(ueCode)));
+	}
+
+	private boolean allCorrespondancesComplete(List<CoursEtudiant> cours, String ueCode) {
+		Set<Long> correspondanceIds = cours.stream()
+				.filter(c -> c.getCorrCours() != null)
+				.map(c -> c.getCorrCours().getCorrespondance().getId())
+				.collect(Collectors.toSet());
+		for (Long corrId : correspondanceIds) {
+			long requis = daoCorrCoursUe.countByUeCodeAndCorrCoursCorrespondanceId(ueCode, corrId);
+			long presents = cours.stream()
+					.filter(c -> c.getCorrCours() != null
+							&& c.getCorrCours().getCorrespondance().getId().equals(corrId))
+					.count();
+			if (presents < requis) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private CoursEtudiantDto toCoursDto(CoursEtudiant c) {

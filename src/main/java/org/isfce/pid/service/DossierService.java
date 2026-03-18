@@ -25,7 +25,7 @@ import org.isfce.pid.model.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Service de gestion des dossiers de dispense (création, complétude, soumission).
@@ -34,19 +34,19 @@ import lombok.AllArgsConstructor;
 
 @SuppressWarnings("null")
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class DossierService {
 	/** États terminaux (clôturés) — un dossier actif est tout dossier hors de ces états. */
 	private static final Set<EtatDossier> ETATS_CLOTURES = Set.of(
 			EtatDossier.CLOTURE_ACCORDE, EtatDossier.CLOTURE_REFUSE);
 
-	private IDossierDao daoDossier;
-	private IUserDao daoUser;
-	private IDispenseDao daoDispense;
-	private IDispenseCoursDao daoDispenseCours;
-	private IDocumentDao daoDocument;
-	private UEMapper mapper;
+	private final IDossierDao daoDossier;
+	private final IUserDao daoUser;
+	private final IDispenseDao daoDispense;
+	private final IDispenseCoursDao daoDispenseCours;
+	private final IDocumentDao daoDocument;
+	private final UEMapper mapper;
 
 	/**
 	 * Crée un dossier si le user n'as pas de dossier en cours
@@ -107,27 +107,40 @@ public class DossierService {
 	 * Vérifie la complétude d'un dossier selon les 4 règles métier.
 	 */
 	public CompletudeDossier checkCompletude(Long dossierId) {
-		// Règle 1 : >= 1 bulletin actif
-		boolean bulletinOk = daoDocument.countByDossierIdAndTypeDocAndDeletedAtIsNull(
-				dossierId, TypeDoc.BULLETIN) >= 1;
-
-		// Règle 2 : >= 1 motivation active
-		boolean motivationOk = daoDocument.countByDossierIdAndTypeDocAndDeletedAtIsNull(
-				dossierId, TypeDoc.MOTIVATION) >= 1;
-
-		// Règle 3 : >= 1 dispense avec >= 1 cours justificatif
+		boolean bulletinOk = hasBulletin(dossierId);
+		boolean motivationOk = hasMotivation(dossierId);
 		List<Dispense> dispenses = daoDispense.findByDossierId(dossierId);
-		boolean dispensesOk = false;
+		boolean dispensesOk = hasDispenseAvecCours(dispenses);
+		CoursInconnusResult coursInconnusResult = checkCoursInconnus(dispenses);
+
+		boolean complet = bulletinOk && motivationOk && dispensesOk && coursInconnusResult.ok;
+		return new CompletudeDossier(complet, bulletinOk, motivationOk, dispensesOk,
+				coursInconnusResult.ok, coursInconnusResult.hasCoursInconnus);
+	}
+
+	private boolean hasBulletin(Long dossierId) {
+		return daoDocument.countByDossierIdAndTypeDocAndDeletedAtIsNull(
+				dossierId, TypeDoc.BULLETIN) >= 1;
+	}
+
+	private boolean hasMotivation(Long dossierId) {
+		return daoDocument.countByDossierIdAndTypeDocAndDeletedAtIsNull(
+				dossierId, TypeDoc.MOTIVATION) >= 1;
+	}
+
+	private boolean hasDispenseAvecCours(List<Dispense> dispenses) {
 		for (Dispense d : dispenses) {
-			List<DispenseCours> liens = daoDispenseCours.findByDispenseId(d.getId());
-			if (!liens.isEmpty()) {
-				dispensesOk = true;
-				break;
+			if (!daoDispenseCours.findByDispenseId(d.getId()).isEmpty()) {
+				return true;
 			}
 		}
+		return false;
+	}
 
-		// Règle 4 : chaque cours INCONNU lié à une dispense doit avoir URL_FICHE ou document PROGRAMME_COURS
-		boolean coursInconnusOk = true;
+	private record CoursInconnusResult(boolean ok, boolean hasCoursInconnus) {}
+
+	private CoursInconnusResult checkCoursInconnus(List<Dispense> dispenses) {
+		boolean ok = true;
 		boolean hasCoursInconnus = false;
 		for (Dispense d : dispenses) {
 			for (DispenseCours dc : daoDispenseCours.findByDispenseId(d.getId())) {
@@ -138,16 +151,14 @@ public class DossierService {
 					boolean hasDoc = daoDocument.countByCoursEtudiantIdAndTypeDocAndDeletedAtIsNull(
 							cours.getId(), TypeDoc.PROGRAMME_COURS) >= 1;
 					if (!hasUrl && !hasDoc) {
-						coursInconnusOk = false;
+						ok = false;
 						break;
 					}
 				}
 			}
-			if (!coursInconnusOk) break;
+			if (!ok) break;
 		}
-
-		boolean complet = bulletinOk && motivationOk && dispensesOk && coursInconnusOk;
-		return new CompletudeDossier(complet, bulletinOk, motivationOk, dispensesOk, coursInconnusOk, hasCoursInconnus);
+		return new CoursInconnusResult(ok, hasCoursInconnus);
 	}
 
 	/**

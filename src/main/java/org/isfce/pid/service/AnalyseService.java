@@ -20,7 +20,7 @@ import org.isfce.pid.model.StatutSaisie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Service d'analyse : suggestions d'UE ISFCE basées sur les cours AUTO_RECONNU.
@@ -31,14 +31,14 @@ import lombok.AllArgsConstructor;
  */
 @SuppressWarnings("null")
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AnalyseService {
 
-	private IDossierDao daoDossier;
-	private ICoursEtudiantDao daoCoursEtudiant;
-	private IDispenseDao daoDispense;
-	private ICorrCoursUeDao daoCorrCoursUe;
+	private final IDossierDao daoDossier;
+	private final ICoursEtudiantDao daoCoursEtudiant;
+	private final IDispenseDao daoDispense;
+	private final ICorrCoursUeDao daoCorrCoursUe;
 
 	/**
 	 * Analyse un dossier et retourne les suggestions d'UE ISFCE.
@@ -50,6 +50,8 @@ public class AnalyseService {
 	 *
 	 * Si plusieurs correspondances couvrent la même UE, la meilleure est retenue.
 	 */
+	record CorrUeKey(Long correspondanceId, String ueCode) {}
+
 	public List<AnalyseDto> analyserDossier(Long dossierId, String username) {
 		Dossier dossier = daoDossier.findById(dossierId)
 				.orElseThrow(() -> new DossierException("err.dossier.notFound"));
@@ -57,68 +59,69 @@ public class AnalyseService {
 			throw new DossierException("err.dossier.forbidden");
 		}
 
-		// UE déjà couvertes par des dispenses existantes
 		Set<String> ueDejaDispensees = daoDispense.findByDossierId(dossierId).stream()
 				.map(d -> d.getUe().getCode())
 				.collect(Collectors.toSet());
 
-		// Cours AUTO_RECONNU du dossier (JOIN FETCH pour éviter N+1)
 		List<CoursEtudiant> coursAutoReconnus = daoCoursEtudiant.findByDossierIdWithCorrespondances(dossierId).stream()
 				.filter(c -> c.getStatutSaisie() == StatutSaisie.AUTO_RECONNU && c.getCorrCours() != null)
 				.toList();
 
-		// Clé = (correspondanceId, ueCode) → nombre de cours présents
-		// On regroupe les cours par correspondance et par UE cible
-		record CorrUeKey(Long correspondanceId, String ueCode) {}
+		Map<CorrUeKey, List<CoursEtudiant>> groupedCours = groupByCorrespondanceAndUe(coursAutoReconnus);
+		return selectBestPerUe(groupedCours, ueDejaDispensees);
+	}
 
-		Map<CorrUeKey, Integer> coursPresentsMap = new HashMap<>();
-		Map<CorrUeKey, String> nomUeMap = new HashMap<>();
-		Map<CorrUeKey, Integer> ectsMap = new HashMap<>();
-		Map<CorrUeKey, List<String>> coursNomsMap = new HashMap<>();
-
-		for (CoursEtudiant cours : coursAutoReconnus) {
-			Long corrId = cours.getCorrCours().getCorrespondance().getId();
-			String label = cours.getCorrCours().getCodeCours() + " — " + cours.getCorrCours().getIntitule();
-			for (CorrCoursUe ccu : cours.getCorrCours().getUesISFCE()) {
-				String ueCode = ccu.getUe().getCode();
-				CorrUeKey key = new CorrUeKey(corrId, ueCode);
-				coursPresentsMap.merge(key, 1, Integer::sum);
-				nomUeMap.putIfAbsent(key, ccu.getUe().getNom());
-				ectsMap.putIfAbsent(key, ccu.getUe().getEcts());
-				coursNomsMap.computeIfAbsent(key, k -> new ArrayList<>()).add(label);
+	private Map<CorrUeKey, List<CoursEtudiant>> groupByCorrespondanceAndUe(List<CoursEtudiant> cours) {
+		Map<CorrUeKey, List<CoursEtudiant>> result = new HashMap<>();
+		for (CoursEtudiant c : cours) {
+			Long corrId = c.getCorrCours().getCorrespondance().getId();
+			for (CorrCoursUe ccu : c.getCorrCours().getUesISFCE()) {
+				CorrUeKey key = new CorrUeKey(corrId, ccu.getUe().getCode());
+				result.computeIfAbsent(key, k -> new ArrayList<>()).add(c);
 			}
 		}
+		return result;
+	}
 
-		// Pour chaque (correspondance, UE), compter le total requis et construire le DTO
-		// Si plusieurs correspondances couvrent la même UE, garder la meilleure
+	private List<AnalyseDto> selectBestPerUe(Map<CorrUeKey, List<CoursEtudiant>> groupedCours,
+			Set<String> ueDejaDispensees) {
 		Map<String, AnalyseDto> bestPerUe = new HashMap<>();
 
-		for (var entry : coursPresentsMap.entrySet()) {
+		for (var entry : groupedCours.entrySet()) {
 			CorrUeKey key = entry.getKey();
 			String ueCode = key.ueCode();
-
 			if (ueDejaDispensees.contains(ueCode)) continue;
 
-			int presents = entry.getValue();
-			long requis = daoCorrCoursUe.countByUeCodeAndCorrCoursCorrespondanceId(ueCode, key.correspondanceId());
+			AnalyseDto dto = buildAnalyseDto(key, entry.getValue());
 
-			AnalyseDto dto = new AnalyseDto(
-					ueCode,
-					nomUeMap.get(key),
-					ectsMap.get(key),
-					presents,
-					(int) requis,
-					presents >= requis,
-					coursNomsMap.getOrDefault(key, List.of()));
-
-			// Garder la meilleure correspondance pour cette UE
 			AnalyseDto existing = bestPerUe.get(ueCode);
 			if (existing == null || isBetter(dto, existing)) {
 				bestPerUe.put(ueCode, dto);
 			}
 		}
-
 		return new ArrayList<>(bestPerUe.values());
+	}
+
+	private AnalyseDto buildAnalyseDto(CorrUeKey key, List<CoursEtudiant> cours) {
+		int presents = cours.size();
+		long requis = daoCorrCoursUe.countByUeCodeAndCorrCoursCorrespondanceId(key.ueCode(), key.correspondanceId());
+
+		String nomUe = null;
+		int ects = 0;
+		List<String> coursNoms = new ArrayList<>();
+		for (CoursEtudiant c : cours) {
+			coursNoms.add(c.getCorrCours().getCodeCours() + " — " + c.getCorrCours().getIntitule());
+			for (CorrCoursUe ccu : c.getCorrCours().getUesISFCE()) {
+				if (ccu.getUe().getCode().equals(key.ueCode())) {
+					nomUe = ccu.getUe().getNom();
+					ects = ccu.getUe().getEcts();
+					break;
+				}
+			}
+		}
+
+		return new AnalyseDto(key.ueCode(), nomUe, ects, presents, (int) requis,
+				presents >= requis, coursNoms);
 	}
 
 	/**
