@@ -6,6 +6,7 @@ import java.util.NoSuchElementException;
 
 import java.util.Locale;
 
+import org.isfce.pid.exception.DossierException;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,8 +34,9 @@ public class MonAdviceRestController {
 	}
 
 	@ExceptionHandler(DossierException.class)
-	public ResponseEntity<Map<String, String>> gestionErreurDossier(DossierException exc) {
-		return ResponseEntity.badRequest().body(Map.of("error", exc.getMessage()));
+	public ResponseEntity<Map<String, String>> gestionErreurDossier(DossierException exc, Locale locale) {
+		String msg = messageSource.getMessage(exc.getMessage(), null, locale);
+		return ResponseEntity.badRequest().body(Map.of("error", msg));
 	}
 	/**
 	 * Permet de capturer les erreurs de validation et de retourner un objet avec les erreurs

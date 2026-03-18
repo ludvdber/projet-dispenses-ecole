@@ -1,14 +1,10 @@
 package org.isfce.pid.controller;
 
 import java.util.List;
-import java.util.Locale;
 
-import org.isfce.pid.controller.error.DossierException;
 import org.isfce.pid.dto.DocumentDto;
 import org.isfce.pid.model.TypeDoc;
 import org.isfce.pid.service.DocumentService;
-import org.springframework.context.MessageSource;
-import org.springframework.context.NoSuchMessageException;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -24,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Contrôleur REST pour l'upload et la gestion des documents.
@@ -34,11 +30,10 @@ import lombok.AllArgsConstructor;
 @SuppressWarnings("null")
 @RestController
 @RequestMapping(path = "/api/document/", produces = "application/json")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DocumentController {
 
-	private DocumentService documentService;
-	private MessageSource bundle;
+	private final DocumentService documentService;
 
 	/**
 	 * Upload un document (multipart/form-data).
@@ -50,14 +45,10 @@ public class DocumentController {
 			@RequestParam(value = "coursEtudiantId", required = false) Long coursEtudiantId,
 			@RequestParam("typeDoc") TypeDoc typeDoc,
 			@RequestParam("file") MultipartFile file,
-			Locale locale, JwtAuthenticationToken auth) throws NoSuchMessageException, DossierException {
+			JwtAuthenticationToken auth) {
 		String username = auth.getToken().getClaimAsString("preferred_username");
-		try {
-			return ResponseEntity.ok(documentService.uploadDocument(
-					dossierId, coursEtudiantId, typeDoc, file, username));
-		} catch (DossierException e) {
-			throw new DossierException(bundle.getMessage(e.getMessage(), new String[] {}, locale));
-		}
+		return ResponseEntity.ok(documentService.uploadDocument(
+				dossierId, coursEtudiantId, typeDoc, file, username));
 	}
 
 	/**
@@ -66,13 +57,9 @@ public class DocumentController {
 	@PreAuthorize("hasRole('ETUDIANT')")
 	@DeleteMapping("{id}")
 	public ResponseEntity<DocumentDto> softDeleteDocument(@PathVariable("id") Long id,
-			Locale locale, JwtAuthenticationToken auth) throws NoSuchMessageException, DossierException {
+			JwtAuthenticationToken auth) {
 		String username = auth.getToken().getClaimAsString("preferred_username");
-		try {
-			return ResponseEntity.ok(documentService.softDeleteDocument(id, username));
-		} catch (DossierException e) {
-			throw new DossierException(bundle.getMessage(e.getMessage(), new String[] {}, locale));
-		}
+		return ResponseEntity.ok(documentService.softDeleteDocument(id, username));
 	}
 
 	/**
@@ -82,13 +69,9 @@ public class DocumentController {
 	@GetMapping("dossier/{dossierId}")
 	public ResponseEntity<List<DocumentDto>> getDocumentsByDossier(
 			@PathVariable("dossierId") Long dossierId,
-			Locale locale, JwtAuthenticationToken auth) throws NoSuchMessageException, DossierException {
+			JwtAuthenticationToken auth) {
 		String username = auth.getToken().getClaimAsString("preferred_username");
-		try {
-			return ResponseEntity.ok(documentService.getDocumentsByDossier(dossierId, username));
-		} catch (DossierException e) {
-			throw new DossierException(bundle.getMessage(e.getMessage(), new String[] {}, locale));
-		}
+		return ResponseEntity.ok(documentService.getDocumentsByDossier(dossierId, username));
 	}
 
 	/**
@@ -97,17 +80,13 @@ public class DocumentController {
 	@PreAuthorize("hasRole('ETUDIANT')")
 	@GetMapping("{id}/download")
 	public ResponseEntity<Resource> downloadDocument(@PathVariable("id") Long id,
-			Locale locale, JwtAuthenticationToken auth) throws NoSuchMessageException, DossierException {
+			JwtAuthenticationToken auth) {
 		String username = auth.getToken().getClaimAsString("preferred_username");
-		try {
-			var result = documentService.downloadDocument(id, username);
-			return ResponseEntity.ok()
-					.contentType(MediaType.parseMediaType(result.typeMime()))
-					.header(HttpHeaders.CONTENT_DISPOSITION,
-							"attachment; filename=\"" + result.originalFilename() + "\"")
-					.body(result.resource());
-		} catch (DossierException e) {
-			throw new DossierException(bundle.getMessage(e.getMessage(), new String[] {}, locale));
-		}
+		var result = documentService.downloadDocument(id, username);
+		return ResponseEntity.ok()
+				.contentType(MediaType.parseMediaType(result.typeMime()))
+				.header(HttpHeaders.CONTENT_DISPOSITION,
+						"attachment; filename=\"" + result.originalFilename() + "\"")
+				.body(result.resource());
 	}
 }

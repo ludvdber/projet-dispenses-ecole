@@ -1,13 +1,9 @@
 package org.isfce.pid.controller;
 
 import java.util.List;
-import java.util.Locale;
 
-import org.isfce.pid.controller.error.DossierException;
 import org.isfce.pid.dto.CoursEtudiantDto;
 import org.isfce.pid.service.CoursEtudiantService;
-import org.springframework.context.MessageSource;
-import org.springframework.context.NoSuchMessageException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -20,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Contrôleur REST pour les cours étudiants d'un dossier de dispense.
@@ -30,46 +26,33 @@ import lombok.AllArgsConstructor;
 @SuppressWarnings("null")
 @RestController
 @RequestMapping(path = "/api/cours-etudiant/", produces = "application/json")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CoursEtudiantController {
 
-	private CoursEtudiantService coursEtudiantService;
-	private MessageSource bundle;
+	private final CoursEtudiantService coursEtudiantService;
 
 	@PreAuthorize("hasRole('ETUDIANT')")
 	@PostMapping(path = "add", consumes = "application/json")
 	public ResponseEntity<CoursEtudiantDto> addCours(@Valid @RequestBody CoursEtudiantDto dto,
-			Locale locale, JwtAuthenticationToken auth) throws NoSuchMessageException, DossierException {
+			JwtAuthenticationToken auth) {
 		String username = auth.getToken().getClaimAsString("preferred_username");
-		try {
-			return ResponseEntity.ok(coursEtudiantService.addCours(dto.dossierId(), dto, username));
-		} catch (DossierException e) {
-			throw new DossierException(bundle.getMessage(e.getMessage(), new String[] {}, locale));
-		}
+		return ResponseEntity.ok(coursEtudiantService.addCours(dto.dossierId(), dto, username));
 	}
 
 	@PreAuthorize("hasRole('ETUDIANT')")
 	@DeleteMapping("{id}")
-	public ResponseEntity<Void> deleteCours(@PathVariable("id") Long id, Locale locale,
-			JwtAuthenticationToken auth) throws NoSuchMessageException, DossierException {
+	public ResponseEntity<Void> deleteCours(@PathVariable("id") Long id,
+			JwtAuthenticationToken auth) {
 		String username = auth.getToken().getClaimAsString("preferred_username");
-		try {
-			coursEtudiantService.deleteCours(id, username);
-			return ResponseEntity.noContent().build();
-		} catch (DossierException e) {
-			throw new DossierException(bundle.getMessage(e.getMessage(), new String[] {}, locale));
-		}
+		coursEtudiantService.deleteCours(id, username);
+		return ResponseEntity.noContent().build();
 	}
 
 	@PreAuthorize("hasRole('ETUDIANT')")
 	@GetMapping("dossier/{dossierId}")
 	public ResponseEntity<List<CoursEtudiantDto>> getCoursByDossier(@PathVariable("dossierId") Long dossierId,
-			Locale locale, JwtAuthenticationToken auth) throws NoSuchMessageException, DossierException {
+			JwtAuthenticationToken auth) {
 		String username = auth.getToken().getClaimAsString("preferred_username");
-		try {
-			return ResponseEntity.ok(coursEtudiantService.getCoursByDossier(dossierId, username));
-		} catch (DossierException e) {
-			throw new DossierException(bundle.getMessage(e.getMessage(), new String[] {}, locale));
-		}
+		return ResponseEntity.ok(coursEtudiantService.getCoursByDossier(dossierId, username));
 	}
 }

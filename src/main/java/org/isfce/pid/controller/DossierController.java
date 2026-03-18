@@ -1,15 +1,11 @@
 package org.isfce.pid.controller;
 
 import java.util.List;
-import java.util.Locale;
 
-import org.isfce.pid.controller.error.DossierException;
 import org.isfce.pid.dto.CompletudeDossier;
 import org.isfce.pid.dto.DossierDto;
 import org.isfce.pid.service.DossierService;
 import org.isfce.pid.service.UserService;
-import org.springframework.context.MessageSource;
-import org.springframework.context.NoSuchMessageException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -36,12 +32,10 @@ public class DossierController {
 
 	private final DossierService dossierService;
 	private final UserService userService;
-	private final MessageSource bundle;
 
-	public DossierController(DossierService dossierService, UserService userService, MessageSource bundle) {
+	public DossierController(DossierService dossierService, UserService userService) {
 		this.dossierService = dossierService;
 		this.userService = userService;
-		this.bundle = bundle;
 	}
 
 	/**
@@ -51,15 +45,10 @@ public class DossierController {
 	@PreAuthorize(value = "hasRole('ETUDIANT')")
 	@PostMapping("create")
 	public ResponseEntity<DossierDto> createDossier(@RequestParam("objetDemande") String objetDemande,
-			Locale locale, JwtAuthenticationToken auth) throws NoSuchMessageException, DossierException {
+			JwtAuthenticationToken auth) {
 		userService.provisionFromJwt(auth);
 		String etu = auth.getToken().getClaimAsString("preferred_username");
-
-		try {
-			return ResponseEntity.ok(dossierService.createDossier(objetDemande, etu));
-		} catch (DossierException e) {
-			throw new DossierException(bundle.getMessage(e.getMessage(), new String[] {}, locale));
-		}
+		return ResponseEntity.ok(dossierService.createDossier(objetDemande, etu));
 	}
 
 	@PreAuthorize(value = "hasRole('ETUDIANT')")
@@ -71,39 +60,27 @@ public class DossierController {
 
 	@PreAuthorize(value = "hasRole('ETUDIANT')")
 	@GetMapping("{id}")
-	public ResponseEntity<DossierDto> getDossier(@PathVariable("id") Long id, Locale locale,
-			JwtAuthenticationToken auth) throws DossierException {
+	public ResponseEntity<DossierDto> getDossier(@PathVariable("id") Long id,
+			JwtAuthenticationToken auth) {
 		String username = auth.getToken().getClaimAsString("preferred_username");
-		try {
-			return ResponseEntity.ok(dossierService.getDossier(id, username));
-		} catch (DossierException e) {
-			throw new DossierException(bundle.getMessage(e.getMessage(), new String[] {}, locale));
-		}
+		return ResponseEntity.ok(dossierService.getDossier(id, username));
 	}
 
 	@PreAuthorize(value = "hasRole('ETUDIANT')")
 	@GetMapping("{id}/completude")
-	public ResponseEntity<CompletudeDossier> checkCompletude(@PathVariable("id") Long id, Locale locale,
-			JwtAuthenticationToken auth) throws DossierException {
+	public ResponseEntity<CompletudeDossier> checkCompletude(@PathVariable("id") Long id,
+			JwtAuthenticationToken auth) {
 		String username = auth.getToken().getClaimAsString("preferred_username");
-		try {
-			// Vérifie ownership
-			dossierService.getDossier(id, username);
-			return ResponseEntity.ok(dossierService.checkCompletude(id));
-		} catch (DossierException e) {
-			throw new DossierException(bundle.getMessage(e.getMessage(), new String[] {}, locale));
-		}
+		// Vérifie ownership
+		dossierService.getDossier(id, username);
+		return ResponseEntity.ok(dossierService.checkCompletude(id));
 	}
 
 	@PreAuthorize(value = "hasRole('ETUDIANT')")
 	@PutMapping("{id}/submit")
-	public ResponseEntity<DossierDto> submitDossier(@PathVariable("id") Long id, Locale locale,
-			JwtAuthenticationToken auth) throws DossierException {
+	public ResponseEntity<DossierDto> submitDossier(@PathVariable("id") Long id,
+			JwtAuthenticationToken auth) {
 		String username = auth.getToken().getClaimAsString("preferred_username");
-		try {
-			return ResponseEntity.ok(dossierService.submitDossier(id, username));
-		} catch (DossierException e) {
-			throw new DossierException(bundle.getMessage(e.getMessage(), new String[] {}, locale));
-		}
+		return ResponseEntity.ok(dossierService.submitDossier(id, username));
 	}
 }
