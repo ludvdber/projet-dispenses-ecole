@@ -20,7 +20,7 @@ import {AuthService} from '../../auth/auth.service';
   styleUrl: './home.component.css',
 })
 export class HomeComponent {
-  private authService = inject(AuthService);
+  private readonly authService = inject(AuthService);
 
   authenticated = this.authService.isAuthenticated;
 

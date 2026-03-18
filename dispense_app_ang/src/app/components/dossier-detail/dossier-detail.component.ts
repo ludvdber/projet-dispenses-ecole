@@ -2,6 +2,7 @@ import {Component, computed, DestroyRef, effect, inject, signal, viewChild} from
 import {ActivatedRoute, Router} from '@angular/router';
 import {rxResource, takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {of} from 'rxjs';
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {CoursEcole} from '../../model/cours-ecole';
 import {DatePipe} from '@angular/common';
 import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle} from '@angular/material/card';
@@ -15,8 +16,9 @@ import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatTooltip} from '@angular/material/tooltip';
 import {MatStepper, MatStep, MatStepLabel, MatStepperNext, MatStepperPrevious} from '@angular/material/stepper';
-import {HttpClient} from '@angular/common/http';
 import {DossierService} from '../../services/dossier.service';
+import {CoursService} from '../../services/cours.service';
+import {DocumentService} from '../../services/document.service';
 import {EtatDossier, etatLabel, etatColor, etatMessage} from '../../model/etat-dossier';
 import {CoursEtudiant} from '../../model/cours-etudiant';
 import {Dispense} from '../../model/dispense';
@@ -39,19 +41,28 @@ import {Dispense} from '../../model/dispense';
   styleUrl: './dossier-detail.component.css',
 })
 export class DossierDetailComponent {
-  private dossierService = inject(DossierService);
-  private http = inject(HttpClient);
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-  private snackBar = inject(MatSnackBar);
-  private destroyRef = inject(DestroyRef);
+
+  // ======================== Injections ========================
+
+  private readonly dossierService = inject(DossierService);
+  private readonly coursService = inject(CoursService);
+  private readonly documentService = inject(DocumentService);
+  private readonly http = inject(HttpClient);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
+
+  // ======================== Identifiant et navigation ========================
 
   readonly dossierId = signal(Number(this.route.snapshot.paramMap.get('id')));
-
-  // Référence au stepper pour navigation programmatique
   stepper = viewChild(MatStepper);
 
-  // Redirection si le dossier n'existe pas ou n'appartient pas à l'utilisateur
+  etatLabel = etatLabel;
+  etatColor = etatColor;
+  etatMessage = etatMessage;
+
+  // Redirection si le dossier n'existe pas ou n'appartient pas a l'utilisateur
   private errorRedirect = effect(() => {
     const err = this.dossierResource.error();
     if (err) {
@@ -60,7 +71,7 @@ export class DossierDetailComponent {
     }
   });
 
-  // ======================== Ressources ========================
+  // ======================== Ressources HTTP ========================
 
   dossierResource = rxResource({
     params: () => this.dossierId(),
@@ -69,7 +80,7 @@ export class DossierDetailComponent {
 
   coursResource = rxResource({
     params: () => this.dossierId(),
-    stream: ({params: id}) => this.dossierService.getCoursParDossier(id),
+    stream: ({params: id}) => this.coursService.getCoursParDossier(id),
   });
 
   dispenseResource = rxResource({
@@ -79,7 +90,7 @@ export class DossierDetailComponent {
 
   documentsResource = rxResource({
     params: () => this.dossierId(),
-    stream: ({params: id}) => this.dossierService.getDocumentsParDossier(id),
+    stream: ({params: id}) => this.documentService.getDocumentsParDossier(id),
   });
 
   completudeResource = rxResource({
@@ -100,7 +111,7 @@ export class DossierDetailComponent {
     stream: () => this.dossierService.getUes(),
   });
 
-  // ======================== Computed ========================
+  // ======================== Computed : donnees principales ========================
 
   dossier = computed(() => this.dossierResource.value());
   cours = computed(() => this.coursResource.value() ?? []);
@@ -121,19 +132,19 @@ export class DossierDetailComponent {
     this.completude()?.complet === true && this.isModifiable()
   );
 
+  // ======================== Computed : documents filtres ========================
+
   bulletinDocs = computed(() => this.documents().filter(d => d.typeDoc === 'BULLETIN'));
   motivationDocs = computed(() => this.documents().filter(d => d.typeDoc === 'MOTIVATION'));
   programmeDocs = computed(() => this.documents().filter(d => d.typeDoc === 'PROGRAMME_COURS'));
 
-  // Step validity signals
+  // ======================== Computed : validite des steps ========================
+
   step1Valid = computed(() => {
     const c = this.cours();
     if (c.length === 0) return false;
     const inconnus = c.filter(x => x.statutSaisie === 'INCONNU');
-    for (const inc of inconnus) {
-      if (!inc.urlFiche && !this.hasProgDoc(inc.id!)) return false;
-    }
-    return true;
+    return inconnus.every(inc => inc.urlFiche || this.hasProgDoc(inc.id!));
   });
 
   step2Valid = computed(() => {
@@ -142,9 +153,9 @@ export class DossierDetailComponent {
     return d.every(disp => disp.coursJustificatifs && disp.coursJustificatifs.length > 0);
   });
 
-  step3Valid = computed(() => {
-    return this.bulletinDocs().length > 0 && this.motivationDocs().length > 0;
-  });
+  step3Valid = computed(() =>
+    this.bulletinDocs().length > 0 && this.motivationDocs().length > 0
+  );
 
   // ======================== Signaux formulaire cours ========================
 
@@ -156,8 +167,6 @@ export class DossierDetailComponent {
   coursEcts = signal<number | null>(null);
   coursUrlFiche = signal('');
 
-  // Cours de la base de connaissances pour l'école sélectionnée
-  // Déclaré après selectedEcoleId pour que le signal soit initialisé
   coursEcoleResource = rxResource({
     params: () => this.selectedEcoleId(),
     stream: ({params: ecoleId}) => {
@@ -168,23 +177,19 @@ export class DossierDetailComponent {
 
   coursEcole = computed(() => this.coursEcoleResource.value() ?? []);
 
-  // L'école sélectionnée est connue (pas AUTRE, pas null)
   isEcoleConnue = computed(() => {
     const id = this.selectedEcoleId();
     return id != null && id !== 'AUTRE';
   });
 
-  // Les cours connus sont disponibles pour cette école
   hasCoursConnus = computed(() => this.coursEcole().length > 0);
 
-  // Le cours sélectionné dans le MatSelect (si connu)
   selectedCoursConnu = computed(() => {
     const code = this.selectedCoursCode();
     if (!code || code === 'AUTRE') return null;
     return this.coursEcole().find(c => c.codeCours === code) ?? null;
   });
 
-  // Mode saisie libre : AUTRE école, ou AUTRE cours, ou école connue sans cours en BDD
   isCoursLibre = computed(() => {
     if (!this.isEcoleConnue()) return true;
     if (!this.hasCoursConnus()) return true;
@@ -196,10 +201,8 @@ export class DossierDetailComponent {
     if (ecoleId == null) return false;
     if (ecoleId === 'AUTRE' && !this.nomEcoleLibre().trim()) return false;
 
-    // Cours connu sélectionné → toujours valide
     if (this.selectedCoursConnu()) return true;
 
-    // Saisie libre → codeCours + intitulé requis, ECTS >= 1
     const ects = this.coursEcts();
     if (ects != null && ects < 1) return false;
     return this.coursCodeCours().trim().length > 0 && this.coursIntitule().trim().length > 0;
@@ -216,7 +219,7 @@ export class DossierDetailComponent {
 
   // ======================== Helpers ========================
 
-  setCoursForDispense(dispenseId: number, coursId: number | null) {
+  setCoursForDispense(dispenseId: number, coursId: number | null): void {
     this.selectedCoursIdMap.update(m => ({...m, [dispenseId]: coursId}));
   }
 
@@ -224,32 +227,184 @@ export class DossierDetailComponent {
     return this.programmeDocs().some(d => d.coursEtudiantId === coursId);
   }
 
-  etatLabel = etatLabel;
-  etatColor = etatColor;
-  etatMessage = etatMessage;
-
   dispenseBadge(disp: Dispense): 'reconnu' | 'inconnu' | null {
     const cours = disp.coursJustificatifs;
     if (!cours || cours.length === 0) return null;
     return disp.correspondanceReconnue ? 'reconnu' : 'inconnu';
   }
 
-  retour() {
+  retour(): void {
     this.router.navigate(['/dossiers']);
   }
 
-  goToStep(index: number) {
+  goToStep(index: number): void {
     const s = this.stepper();
     if (s) s.selectedIndex = index;
   }
 
   // ======================== Actions cours ========================
 
-  ajouterCours() {
+  ajouterCours(): void {
     if (!this.coursFormValid()) return;
+
+    const cours = this.buildCoursFromForm();
+    this.coursService.addCours(cours).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.reloadCoursData();
+        this.resetCoursForm();
+        this.snackBar.open('Cours ajouté', 'OK', {duration: 2000});
+      },
+      error: (err: HttpErrorResponse) => this.showError(err),
+    });
+  }
+
+  supprimerCours(id: number): void {
+    this.coursService.deleteCours(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.coursResource.reload();
+        this.completudeResource.reload();
+        this.snackBar.open('Cours supprimé', 'OK', {duration: 2000});
+      },
+      error: (err: HttpErrorResponse) => this.showError(err),
+    });
+  }
+
+  onProgFileSelected(event: Event, coursId: number): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.documentService.uploadDocument(this.dossierId(), 'PROGRAMME_COURS', file, coursId)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: () => {
+          this.documentsResource.reload();
+          this.completudeResource.reload();
+          input.value = '';
+          this.snackBar.open('Programme uploadé', 'OK', {duration: 2000});
+        },
+        error: (err: HttpErrorResponse) => {
+          input.value = '';
+          this.showError(err);
+        },
+      });
+  }
+
+  // ======================== Actions dispenses ========================
+
+  creerDispense(codeUe?: string): void {
+    const code = codeUe ?? this.selectedUeCode();
+    if (!code || !code.trim()) return;
+    this.dossierService.createDispense(this.dossierId(), code)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: () => {
+          this.reloadDispenseData();
+          this.selectedUeCode.set(null);
+          this.snackBar.open('Dispense créée', 'OK', {duration: 2000});
+        },
+        error: (err: HttpErrorResponse) => this.showError(err),
+      });
+  }
+
+  supprimerDispense(id: number): void {
+    this.dossierService.deleteDispense(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.dispenseResource.reload();
+        this.completudeResource.reload();
+        this.snackBar.open('Dispense supprimée', 'OK', {duration: 2000});
+      },
+      error: (err: HttpErrorResponse) => this.showError(err),
+    });
+  }
+
+  lierCours(dispenseId: number): void {
+    const coursId = this.selectedCoursIdMap()[dispenseId];
+    if (coursId == null) return;
+    this.dossierService.lierCours(dispenseId, coursId)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: () => {
+          this.dispenseResource.reload();
+          this.completudeResource.reload();
+          this.selectedCoursIdMap.update(m => ({...m, [dispenseId]: null}));
+          this.snackBar.open('Cours lié', 'OK', {duration: 2000});
+        },
+        error: (err: HttpErrorResponse) => this.showError(err),
+      });
+  }
+
+  delierCours(dispenseId: number, coursId: number): void {
+    this.dossierService.delierCours(dispenseId, coursId)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: () => {
+          this.dispenseResource.reload();
+          this.completudeResource.reload();
+        },
+        error: (err: HttpErrorResponse) => this.showError(err),
+      });
+  }
+
+  // ======================== Actions documents ========================
+
+  onFileSelected(event: Event, typeDoc: string): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.documentService.uploadDocument(this.dossierId(), typeDoc, file)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: () => {
+          this.documentsResource.reload();
+          this.completudeResource.reload();
+          input.value = '';
+          this.snackBar.open('Document uploadé', 'OK', {duration: 2000});
+        },
+        error: (err: HttpErrorResponse) => {
+          input.value = '';
+          this.showError(err);
+        },
+      });
+  }
+
+  supprimerDocument(id: number): void {
+    this.documentService.softDeleteDocument(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.documentsResource.reload();
+        this.completudeResource.reload();
+        this.snackBar.open('Document supprimé', 'OK', {duration: 2000});
+      },
+      error: (err: HttpErrorResponse) => this.showError(err),
+    });
+  }
+
+  telecharger(id: number, filename: string): void {
+    const url = this.documentService.getDownloadUrl(id);
+    this.http.get(url, {responseType: 'blob'}).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (blob: Blob) => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      },
+      error: (err: HttpErrorResponse) => this.showError(err),
+    });
+  }
+
+  // ======================== Soumission ========================
+
+  soumettre(): void {
+    this.dossierService.submitDossier(this.dossierId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.snackBar.open('Dossier soumis avec succès !', 'OK', {duration: 3000});
+        this.router.navigate(['/dossiers']);
+      },
+      error: (err: HttpErrorResponse) => this.showError(err),
+    });
+  }
+
+  // ======================== Methodes privees ========================
+
+  private buildCoursFromForm(): CoursEtudiant {
     const ecoleId = this.selectedEcoleId();
     const connu = this.selectedCoursConnu();
-    const cours: CoursEtudiant = {
+    return {
       dossierId: this.dossierId(),
       codeEcole: ecoleId !== 'AUTRE' ? ecoleId! : undefined,
       nomEcole: ecoleId === 'AUTRE' ? this.nomEcoleLibre() : undefined,
@@ -258,30 +413,9 @@ export class DossierDetailComponent {
       ects: connu ? (connu.ects ?? undefined) : (this.coursEcts() ?? undefined),
       urlFiche: connu ? undefined : (this.coursUrlFiche() || undefined),
     };
-    this.dossierService.addCours(cours).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.coursResource.reload();
-        this.analyseResource.reload();
-        this.completudeResource.reload();
-        this.resetCoursForm();
-        this.snackBar.open('Cours ajouté', 'OK', {duration: 2000});
-      },
-      error: err => this.showError(err),
-    });
   }
 
-  supprimerCours(id: number) {
-    this.dossierService.deleteCours(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.coursResource.reload();
-        this.completudeResource.reload();
-        this.snackBar.open('Cours supprimé', 'OK', {duration: 2000});
-      },
-      error: err => this.showError(err),
-    });
-  }
-
-  private resetCoursForm() {
+  private resetCoursForm(): void {
     this.selectedEcoleId.set(null);
     this.nomEcoleLibre.set('');
     this.selectedCoursCode.set(null);
@@ -291,137 +425,19 @@ export class DossierDetailComponent {
     this.coursUrlFiche.set('');
   }
 
-  // Inline : upload programme pour un cours INCONNU
-  onProgFileSelected(event: Event, coursId: number) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    this.dossierService.uploadDocument(this.dossierId(), 'PROGRAMME_COURS', file, coursId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.documentsResource.reload();
-        this.completudeResource.reload();
-        input.value = '';
-        this.snackBar.open('Programme uploadé', 'OK', {duration: 2000});
-      },
-      error: err => {
-        input.value = '';
-        this.showError(err);
-      },
-    });
+  private reloadCoursData(): void {
+    this.coursResource.reload();
+    this.analyseResource.reload();
+    this.completudeResource.reload();
   }
 
-  // ======================== Actions dispenses ========================
-
-  creerDispense(codeUe?: string) {
-    const code = codeUe ?? this.selectedUeCode();
-    if (!code || !code.trim()) return;
-    this.dossierService.createDispense(this.dossierId(), code).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.dispenseResource.reload();
-        this.analyseResource.reload();
-        this.completudeResource.reload();
-        this.selectedUeCode.set(null);
-        this.snackBar.open('Dispense créée', 'OK', {duration: 2000});
-      },
-      error: err => this.showError(err),
-    });
+  private reloadDispenseData(): void {
+    this.dispenseResource.reload();
+    this.analyseResource.reload();
+    this.completudeResource.reload();
   }
 
-  supprimerDispense(id: number) {
-    this.dossierService.deleteDispense(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.dispenseResource.reload();
-        this.completudeResource.reload();
-        this.snackBar.open('Dispense supprimée', 'OK', {duration: 2000});
-      },
-      error: err => this.showError(err),
-    });
-  }
-
-  lierCours(dispenseId: number) {
-    const coursId = this.selectedCoursIdMap()[dispenseId];
-    if (coursId == null) return;
-    this.dossierService.lierCours(dispenseId, coursId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.dispenseResource.reload();
-        this.completudeResource.reload();
-        this.selectedCoursIdMap.update(m => ({...m, [dispenseId]: null}));
-        this.snackBar.open('Cours lié', 'OK', {duration: 2000});
-      },
-      error: err => this.showError(err),
-    });
-  }
-
-  delierCours(dispenseId: number, coursId: number) {
-    this.dossierService.delierCours(dispenseId, coursId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.dispenseResource.reload();
-        this.completudeResource.reload();
-      },
-      error: err => this.showError(err),
-    });
-  }
-
-  // ======================== Actions documents ========================
-
-  onFileSelected(event: Event, typeDoc: string) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    this.dossierService.uploadDocument(this.dossierId(), typeDoc, file).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.documentsResource.reload();
-        this.completudeResource.reload();
-        input.value = '';
-        this.snackBar.open('Document uploadé', 'OK', {duration: 2000});
-      },
-      error: err => {
-        input.value = '';
-        this.showError(err);
-      },
-    });
-  }
-
-  supprimerDocument(id: number) {
-    this.dossierService.softDeleteDocument(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.documentsResource.reload();
-        this.completudeResource.reload();
-        this.snackBar.open('Document supprimé', 'OK', {duration: 2000});
-      },
-      error: err => this.showError(err),
-    });
-  }
-
-  telecharger(id: number, filename: string) {
-    const url = this.dossierService.getDownloadUrl(id);
-    this.http.get(url, {responseType: 'blob'}).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (blob) => {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(a.href);
-      },
-      error: err => this.showError(err),
-    });
-  }
-
-  // ======================== Soumission ========================
-
-  soumettre() {
-    this.dossierService.submitDossier(this.dossierId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.snackBar.open('Dossier soumis avec succès !', 'OK', {duration: 3000});
-        this.router.navigate(['/dossiers']);
-      },
-      error: err => this.showError(err),
-    });
-  }
-
-  // ======================== Privé ========================
-
-  private showError(err: any) {
+  private showError(err: HttpErrorResponse): void {
     const msg = err.error?.error || err.error?.message || 'Erreur inattendue';
     this.snackBar.open(msg, 'Fermer', {duration: 5000});
   }

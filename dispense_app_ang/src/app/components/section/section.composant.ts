@@ -39,7 +39,7 @@ import {MatIcon} from '@angular/material/icon';
   styleUrl: './section.composant.css',
 })
 export class SectionComposant {
-  private dispenseService = inject(DispenseService);
+  private readonly dispenseService = inject(DispenseService);
 
   // --- Signaux d'état ---
   selectedSection = signal<Section | undefined>(undefined);

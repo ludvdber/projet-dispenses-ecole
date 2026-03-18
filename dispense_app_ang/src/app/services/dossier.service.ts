@@ -4,23 +4,21 @@ import {Observable} from 'rxjs';
 import {environment} from '../../environments/environment';
 import {Dossier} from '../model/dossier';
 import {CompletudeDossier} from '../model/completude-dossier';
-import {CoursEtudiant} from '../model/cours-etudiant';
 import {Dispense} from '../model/dispense';
-import {DocumentDossier} from '../model/document-dossier';
 import {AnalyseDto} from '../model/analyse-dto';
 import {Ecole} from '../model/ecole';
 import {CoursEcole} from '../model/cours-ecole';
 import {Ue} from '../model/ue';
 
 /**
- * Service HTTP pour les opérations sur les dossiers, cours, dispenses, documents et analyses.
+ * Service HTTP pour les opérations sur les dossiers, dispenses, analyses et données de référence.
  * @author Ludovic
  */
 @Injectable({
   providedIn: 'root',
 })
 export class DossierService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
   private readonly api = environment.resourceServer.url;
 
   // ======================== Dossier ========================
@@ -46,20 +44,6 @@ export class DossierService {
     return this.http.put<Dossier>(`${this.api}/api/dossier/${id}/submit`, null);
   }
 
-  // ======================== Cours étudiant ========================
-
-  addCours(cours: CoursEtudiant): Observable<CoursEtudiant> {
-    return this.http.post<CoursEtudiant>(`${this.api}/api/cours-etudiant/add`, cours);
-  }
-
-  deleteCours(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.api}/api/cours-etudiant/${id}`);
-  }
-
-  getCoursParDossier(dossierId: number): Observable<CoursEtudiant[]> {
-    return this.http.get<CoursEtudiant[]>(`${this.api}/api/cours-etudiant/dossier/${dossierId}`);
-  }
-
   // ======================== Dispenses ========================
 
   createDispense(dossierId: number, codeUe: string): Observable<Dispense> {
@@ -81,31 +65,6 @@ export class DossierService {
 
   getDispensesParDossier(dossierId: number): Observable<Dispense[]> {
     return this.http.get<Dispense[]>(`${this.api}/api/dispense/dossier/${dossierId}`);
-  }
-
-  // ======================== Documents ========================
-
-  uploadDocument(dossierId: number, typeDoc: string, file: File, coursEtudiantId?: number): Observable<DocumentDossier> {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('typeDoc', typeDoc);
-    formData.append('dossierId', String(dossierId));
-    if (coursEtudiantId != null) {
-      formData.append('coursEtudiantId', String(coursEtudiantId));
-    }
-    return this.http.post<DocumentDossier>(`${this.api}/api/document/upload`, formData);
-  }
-
-  softDeleteDocument(id: number): Observable<DocumentDossier> {
-    return this.http.delete<DocumentDossier>(`${this.api}/api/document/${id}`);
-  }
-
-  getDocumentsParDossier(dossierId: number): Observable<DocumentDossier[]> {
-    return this.http.get<DocumentDossier[]>(`${this.api}/api/document/dossier/${dossierId}`);
-  }
-
-  getDownloadUrl(id: number): string {
-    return `${this.api}/api/document/${id}/download`;
   }
 
   // ======================== Analyse ========================

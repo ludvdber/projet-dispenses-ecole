@@ -36,8 +36,8 @@ export class EuDetailComponent {
   /** UE sélectionnée (input du composant parent) */
   ue = input<Ue>();
 
-  private dispenseService = inject(DispenseService);
-  private sanitizer = inject(DomSanitizer);
+  private readonly dispenseService = inject(DispenseService);
+  private readonly sanitizer = inject(DomSanitizer);
 
   /** Programme HTML sanitisé pour éviter les injections XSS */
   safePrgm = computed(() => {

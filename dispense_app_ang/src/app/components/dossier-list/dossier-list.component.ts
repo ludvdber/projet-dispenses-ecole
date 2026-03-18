@@ -26,8 +26,8 @@ import {EtatDossier, etatLabel, etatColor} from '../../model/etat-dossier';
   styleUrl: './dossier-list.component.css',
 })
 export class DossierListComponent {
-  private dossierService = inject(DossierService);
-  private router = inject(Router);
+  private readonly dossierService = inject(DossierService);
+  private readonly router = inject(Router);
 
   dossiersResource = rxResource({
     stream: () => this.dossierService.getDossiers(),

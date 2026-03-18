@@ -14,7 +14,7 @@ import {UeFullDto} from '../model/ue-full-dto';
   providedIn: 'root',
 })
 export class DispenseService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
   private readonly urlListeSections = `${environment.resourceServer.url}/api/ue/sections`;
   private readonly urlListeUEBySection = `${environment.resourceServer.url}/api/ue/liste`;
   private readonly urlUeDetail = `${environment.resourceServer.url}/api/ue/detail`;

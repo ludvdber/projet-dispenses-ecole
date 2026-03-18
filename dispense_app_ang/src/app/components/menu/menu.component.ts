@@ -20,7 +20,7 @@ import {MatDivider} from '@angular/material/divider';
   styleUrl: './menu.component.css',
 })
 export class MenuComponent {
-  private authService = inject(AuthService);
+  private readonly authService = inject(AuthService);
 
   protected authenticated = this.authService.isAuthenticated;
 

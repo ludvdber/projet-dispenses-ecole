@@ -21,10 +21,10 @@ import {DossierService} from '../../services/dossier.service';
   styleUrl: './dossier-create.css',
 })
 export class DossierCreate {
-  private dossierService = inject(DossierService);
-  private snackBar = inject(MatSnackBar);
-  private router = inject(Router);
-  private destroyRef = inject(DestroyRef);
+  private readonly dossierService = inject(DossierService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
     const now = new Date();
