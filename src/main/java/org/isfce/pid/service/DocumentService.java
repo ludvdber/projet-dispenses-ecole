@@ -14,7 +14,7 @@ import java.util.HexFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.isfce.pid.controller.error.DossierException;
+import org.isfce.pid.exception.DossierException;
 import org.isfce.pid.dao.ICoursEtudiantDao;
 import org.isfce.pid.dao.IDocumentDao;
 import org.isfce.pid.dao.IDossierDao;
@@ -62,7 +62,7 @@ public class DocumentService {
 	 * Upload un document lié à un dossier ou à un cours étudiant (XOR).
 	 */
 	public DocumentDto uploadDocument(Long dossierId, Long coursEtudiantId,
-			TypeDoc typeDoc, MultipartFile file, String username) throws DossierException {
+			TypeDoc typeDoc, MultipartFile file, String username) {
 
 		// Validation type MIME
 		String contentType = file.getContentType();
@@ -160,7 +160,7 @@ public class DocumentService {
 	/**
 	 * Soft-delete un document (positionne deletedAt).
 	 */
-	public DocumentDto softDeleteDocument(Long documentId, String username) throws DossierException {
+	public DocumentDto softDeleteDocument(Long documentId, String username) {
 		Document doc = daoDocument.findById(documentId)
 				.orElseThrow(() -> new DossierException("err.document.notFound"));
 
@@ -185,7 +185,7 @@ public class DocumentService {
 	/**
 	 * Retourne les documents actifs d'un dossier.
 	 */
-	public List<DocumentDto> getDocumentsByDossier(Long dossierId, String username) throws DossierException {
+	public List<DocumentDto> getDocumentsByDossier(Long dossierId, String username) {
 		Dossier dossier = daoDossier.findById(dossierId)
 				.orElseThrow(() -> new DossierException("err.dossier.notFound"));
 		if (!dossier.getUser().getUsername().equals(username)) {
@@ -206,7 +206,7 @@ public class DocumentService {
 	/**
 	 * Retourne une Resource + métadonnées pour télécharger un document (une seule requête BDD).
 	 */
-	public DownloadResult downloadDocument(Long documentId, String username) throws DossierException {
+	public DownloadResult downloadDocument(Long documentId, String username) {
 		Document doc = daoDocument.findById(documentId)
 				.orElseThrow(() -> new DossierException("err.document.notFound"));
 

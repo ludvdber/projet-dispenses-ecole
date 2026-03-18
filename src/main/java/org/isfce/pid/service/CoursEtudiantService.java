@@ -2,7 +2,7 @@ package org.isfce.pid.service;
 
 import java.util.List;
 
-import org.isfce.pid.controller.error.DossierException;
+import org.isfce.pid.exception.DossierException;
 import org.isfce.pid.dao.ICorrCoursDao;
 import org.isfce.pid.dao.ICoursEtudiantDao;
 import org.isfce.pid.dao.IDossierDao;
@@ -39,7 +39,7 @@ public class CoursEtudiantService {
 	 * Ajoute un cours étudiant à un dossier.
 	 * Vérifie ownership et état du dossier, puis auto-reconnaissance si possible.
 	 */
-	public CoursEtudiantDto addCours(Long dossierId, CoursEtudiantDto dto, String username) throws DossierException {
+	public CoursEtudiantDto addCours(Long dossierId, CoursEtudiantDto dto, String username) {
 		Dossier dossier = daoDossier.findById(dossierId)
 				.orElseThrow(() -> new DossierException("err.dossier.notFound"));
 
@@ -95,7 +95,7 @@ public class CoursEtudiantService {
 	/**
 	 * Supprime un cours étudiant. Vérifie ownership via le dossier.
 	 */
-	public void deleteCours(Long coursId, String username) throws DossierException {
+	public void deleteCours(Long coursId, String username) {
 		CoursEtudiant cours = daoCoursEtudiant.findById(coursId)
 				.orElseThrow(() -> new DossierException("err.cours.notFound"));
 
@@ -114,7 +114,7 @@ public class CoursEtudiantService {
 	/**
 	 * Retourne les cours d'un dossier. Vérifie ownership.
 	 */
-	public List<CoursEtudiantDto> getCoursByDossier(Long dossierId, String username) throws DossierException {
+	public List<CoursEtudiantDto> getCoursByDossier(Long dossierId, String username) {
 		Dossier dossier = daoDossier.findById(dossierId)
 				.orElseThrow(() -> new DossierException("err.dossier.notFound"));
 

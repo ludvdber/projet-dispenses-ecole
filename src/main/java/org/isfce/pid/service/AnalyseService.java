@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.isfce.pid.controller.error.DossierException;
+import org.isfce.pid.exception.DossierException;
 import org.isfce.pid.dao.ICorrCoursUeDao;
 import org.isfce.pid.dao.ICoursEtudiantDao;
 import org.isfce.pid.dao.IDispenseDao;
@@ -50,7 +50,7 @@ public class AnalyseService {
 	 *
 	 * Si plusieurs correspondances couvrent la même UE, la meilleure est retenue.
 	 */
-	public List<AnalyseDto> analyserDossier(Long dossierId, String username) throws DossierException {
+	public List<AnalyseDto> analyserDossier(Long dossierId, String username) {
 		Dossier dossier = daoDossier.findById(dossierId)
 				.orElseThrow(() -> new DossierException("err.dossier.notFound"));
 		if (!dossier.getUser().getUsername().equals(username)) {

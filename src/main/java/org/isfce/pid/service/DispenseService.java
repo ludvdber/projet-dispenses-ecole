@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.isfce.pid.controller.error.DossierException;
+import org.isfce.pid.exception.DossierException;
 import org.isfce.pid.dao.ICorrCoursUeDao;
 import org.isfce.pid.dao.ICoursEtudiantDao;
 import org.isfce.pid.dao.IDispenseCoursDao;
@@ -47,7 +47,7 @@ public class DispenseService {
 	 * Crée une dispense pour une UE dans un dossier.
 	 * Vérifie ownership, état du dossier et unicité (dossier, UE).
 	 */
-	public DispenseDto createDispense(Long dossierId, String codeUe, String username) throws DossierException {
+	public DispenseDto createDispense(Long dossierId, String codeUe, String username) {
 		Dossier dossier = checkDossierOwnership(dossierId, username);
 		checkDossierModifiable(dossier);
 
@@ -71,7 +71,7 @@ public class DispenseService {
 	 * Supprime une dispense et ses liens cours justificatifs.
 	 */
 	@Transactional
-	public void deleteDispense(Long dispenseId, String username) throws DossierException {
+	public void deleteDispense(Long dispenseId, String username) {
 		Dispense dispense = daoDispense.findById(dispenseId)
 				.orElseThrow(() -> new DossierException("err.dispense.notFound"));
 
@@ -85,7 +85,7 @@ public class DispenseService {
 	/**
 	 * Ajoute un cours étudiant comme justificatif d'une dispense.
 	 */
-	public DispenseDto addCoursJustificatif(Long dispenseId, Long coursId, String username) throws DossierException {
+	public DispenseDto addCoursJustificatif(Long dispenseId, Long coursId, String username) {
 		Dispense dispense = daoDispense.findById(dispenseId)
 				.orElseThrow(() -> new DossierException("err.dispense.notFound"));
 
@@ -115,7 +115,7 @@ public class DispenseService {
 	/**
 	 * Retire un cours justificatif d'une dispense.
 	 */
-	public DispenseDto removeCoursJustificatif(Long dispenseId, Long coursId, String username) throws DossierException {
+	public DispenseDto removeCoursJustificatif(Long dispenseId, Long coursId, String username) {
 		Dispense dispense = daoDispense.findById(dispenseId)
 				.orElseThrow(() -> new DossierException("err.dispense.notFound"));
 
@@ -135,7 +135,7 @@ public class DispenseService {
 	/**
 	 * Retourne toutes les dispenses d'un dossier avec leurs cours justificatifs.
 	 */
-	public List<DispenseDto> getDispensesByDossier(Long dossierId, String username) throws DossierException {
+	public List<DispenseDto> getDispensesByDossier(Long dossierId, String username) {
 		checkDossierOwnership(dossierId, username);
 
 		return daoDispense.findByDossierId(dossierId).stream()
@@ -145,7 +145,7 @@ public class DispenseService {
 
 	// --- Méthodes utilitaires ---
 
-	private Dossier checkDossierOwnership(Long dossierId, String username) throws DossierException {
+	private Dossier checkDossierOwnership(Long dossierId, String username) {
 		Dossier dossier = daoDossier.findById(dossierId)
 				.orElseThrow(() -> new DossierException("err.dossier.notFound"));
 		if (!dossier.getUser().getUsername().equals(username)) {
@@ -154,7 +154,7 @@ public class DispenseService {
 		return dossier;
 	}
 
-	private void checkDossierModifiable(Dossier dossier) throws DossierException {
+	private void checkDossierModifiable(Dossier dossier) {
 		if (dossier.getEtat() != EtatDossier.DEMANDE_EN_COURS
 				&& dossier.getEtat() != EtatDossier.ATTENTE_COMPLEMENT) {
 			throw new DossierException("err.cours.dossierClos");
