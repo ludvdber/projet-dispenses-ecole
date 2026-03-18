@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
-import org.isfce.pid.controller.error.DossierException;
+import org.isfce.pid.exception.DossierException;
 import org.isfce.pid.dto.DossierDto;
 import org.isfce.pid.dto.UserDto;
 import org.isfce.pid.model.EtatDossier;

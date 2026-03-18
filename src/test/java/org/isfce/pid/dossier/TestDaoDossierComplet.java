@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 import org.isfce.pid.dao.ICoursEtudiantDao;
 import org.isfce.pid.dao.IDispenseDao;
@@ -17,7 +18,7 @@ import org.isfce.pid.model.Dossier;
 import org.isfce.pid.model.EtatDossier;
 import org.isfce.pid.model.User;
 import org.isfce.pid.service.DossierService;
-import org.isfce.pid.controller.error.DossierException;
+import org.isfce.pid.exception.DossierException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,6 +38,9 @@ import jakarta.transaction.Transactional;
 @Sql({ "/dataTestU.sql" })
 @SpringBootTest
 class TestDaoDossierComplet {
+
+	private static final Set<EtatDossier> ETATS_CLOTURES = Set.of(
+			EtatDossier.CLOTURE_ACCORDE, EtatDossier.CLOTURE_REFUSE);
 
 	@Autowired
 	IDossierDao daoDossier;
@@ -86,7 +90,7 @@ class TestDaoDossierComplet {
 		// et1 a 2 dossiers clôturés + 1 en cours
 		// On supprime d'abord le dossier en cours de et1 (+ ses dépendances FK)
 		User et1 = daoUser.findById("et1").get();
-		var dossierEnCours = daoDossier.findDossierEnCours(et1);
+		var dossierEnCours = daoDossier.findFirstByUserAndEtatNotIn(et1, ETATS_CLOTURES);
 		assertTrue(dossierEnCours.isPresent());
 		Long dossierId = dossierEnCours.get().getId();
 		daoDocument.deleteAll(daoDocument.findByDossierIdAndDeletedAtIsNull(dossierId));
@@ -109,7 +113,7 @@ class TestDaoDossierComplet {
 	@Transactional
 	void testEditerObjetDemande() {
 		User et1 = daoUser.findById("et1").get();
-		Dossier enCours = daoDossier.findDossierEnCours(et1).get();
+		Dossier enCours = daoDossier.findFirstByUserAndEtatNotIn(et1, ETATS_CLOTURES).get();
 
 		enCours.setObjetDemande("Objet modifié par l'étudiant");
 		daoDossier.save(enCours);
@@ -122,7 +126,7 @@ class TestDaoDossierComplet {
 	@Transactional
 	void testMarquerDossierComplet() {
 		User et1 = daoUser.findById("et1").get();
-		Dossier enCours = daoDossier.findDossierEnCours(et1).get();
+		Dossier enCours = daoDossier.findFirstByUserAndEtatNotIn(et1, ETATS_CLOTURES).get();
 		assertFalse(enCours.isComplet());
 
 		enCours.setComplet(true);
@@ -140,7 +144,7 @@ class TestDaoDossierComplet {
 	@Transactional
 	void testTransitionVersTraitementDirection() {
 		User et1 = daoUser.findById("et1").get();
-		Dossier enCours = daoDossier.findDossierEnCours(et1).get();
+		Dossier enCours = daoDossier.findFirstByUserAndEtatNotIn(et1, ETATS_CLOTURES).get();
 		assertEquals(EtatDossier.DEMANDE_EN_COURS, enCours.getEtat());
 
 		enCours.setEtat(EtatDossier.TRAITEMENT_DIRECTION);
@@ -153,7 +157,7 @@ class TestDaoDossierComplet {
 	@Transactional
 	void testTransitionVersTraitementEnseignant() {
 		User et1 = daoUser.findById("et1").get();
-		Dossier enCours = daoDossier.findDossierEnCours(et1).get();
+		Dossier enCours = daoDossier.findFirstByUserAndEtatNotIn(et1, ETATS_CLOTURES).get();
 
 		enCours.setEtat(EtatDossier.TRAITEMENT_ENSEIGNANT);
 		daoDossier.save(enCours);
@@ -165,7 +169,7 @@ class TestDaoDossierComplet {
 	@Transactional
 	void testTransitionAttenteComplement() {
 		User et2 = daoUser.findById("et2").get();
-		Dossier enCours = daoDossier.findDossierEnCours(et2).get();
+		Dossier enCours = daoDossier.findFirstByUserAndEtatNotIn(et2, ETATS_CLOTURES).get();
 
 		enCours.setEtat(EtatDossier.ATTENTE_COMPLEMENT);
 		daoDossier.save(enCours);
@@ -182,16 +186,15 @@ class TestDaoDossierComplet {
 	@Transactional
 	void testClotureAccordee() {
 		User et2 = daoUser.findById("et2").get();
-		Dossier enCours = daoDossier.findDossierEnCours(et2).get();
+		Dossier enCours = daoDossier.findFirstByUserAndEtatNotIn(et2, ETATS_CLOTURES).get();
 
 		enCours.setEtat(EtatDossier.CLOTURE_ACCORDE);
 		enCours.setComplet(true);
 		daoDossier.save(enCours);
 
 		// Vérifie que le dossier n'apparaît plus comme "en cours"
-		assertFalse(daoDossier.findDossierEnCours(et2).isPresent());
-		assertEquals(1, daoDossier.getNbDossierCloture("et2"));
-		assertEquals(0, daoDossier.getNbDossierEnCours("et2"));
+		assertFalse(daoDossier.findFirstByUserAndEtatNotIn(et2, ETATS_CLOTURES).isPresent());
+		assertEquals(0, daoDossier.countByUserUsernameAndEtatNotIn("et2", ETATS_CLOTURES));
 	}
 
 	// ======================== REFUS (clôture refusée) ========================
@@ -200,14 +203,13 @@ class TestDaoDossierComplet {
 	@Transactional
 	void testClotureRefusee() {
 		User et2 = daoUser.findById("et2").get();
-		Dossier enCours = daoDossier.findDossierEnCours(et2).get();
+		Dossier enCours = daoDossier.findFirstByUserAndEtatNotIn(et2, ETATS_CLOTURES).get();
 
 		enCours.setEtat(EtatDossier.CLOTURE_REFUSE);
 		enCours.setComplet(true);
 		daoDossier.save(enCours);
 
-		assertFalse(daoDossier.findDossierEnCours(et2).isPresent());
-		assertEquals(1, daoDossier.getNbDossierCloture("et2"));
+		assertFalse(daoDossier.findFirstByUserAndEtatNotIn(et2, ETATS_CLOTURES).isPresent());
 	}
 
 	// ======================== SUPPRESSION TOTALE ========================
@@ -217,7 +219,7 @@ class TestDaoDossierComplet {
 	void testSuppressionTotaleDossier() {
 		User et2 = daoUser.findById("et2").get();
 		int countBefore = daoDossier.countByUser(et2);
-		Dossier enCours = daoDossier.findDossierEnCours(et2).get();
+		Dossier enCours = daoDossier.findFirstByUserAndEtatNotIn(et2, ETATS_CLOTURES).get();
 		Long id = enCours.getId();
 
 		// Supprime les dépendances FK avant le dossier
@@ -230,7 +232,7 @@ class TestDaoDossierComplet {
 
 		assertFalse(daoDossier.findById(id).isPresent());
 		assertEquals(countBefore - 1, daoDossier.countByUser(et2));
-		assertEquals(0, daoDossier.getNbDossierEnCours("et2"));
+		assertEquals(0, daoDossier.countByUserUsernameAndEtatNotIn("et2", ETATS_CLOTURES));
 	}
 
 	@Test
@@ -253,8 +255,7 @@ class TestDaoDossierComplet {
 		daoDossier.deleteAll(dossiers);
 
 		assertEquals(0, daoDossier.countByUser(et1));
-		assertEquals(0, daoDossier.getNbDossierEnCours("et1"));
-		assertEquals(0, daoDossier.getNbDossierCloture("et1"));
+		assertEquals(0, daoDossier.countByUserUsernameAndEtatNotIn("et1", ETATS_CLOTURES));
 	}
 
 	// ======================== QUERIES ========================
@@ -274,16 +275,13 @@ class TestDaoDossierComplet {
 	@Transactional
 	void testNbDossiers() {
 		// et1 : 2 clôturés + 1 en cours
-		assertEquals(1, daoDossier.getNbDossierEnCours("et1"));
-		assertEquals(2, daoDossier.getNbDossierCloture("et1"));
+		assertEquals(1, daoDossier.countByUserUsernameAndEtatNotIn("et1", ETATS_CLOTURES));
 
 		// et2 : 1 en cours
-		assertEquals(1, daoDossier.getNbDossierEnCours("et2"));
-		assertEquals(0, daoDossier.getNbDossierCloture("et2"));
+		assertEquals(1, daoDossier.countByUserUsernameAndEtatNotIn("et2", ETATS_CLOTURES));
 
 		// dvo : aucun dossier
-		assertEquals(0, daoDossier.getNbDossierEnCours("dvo"));
-		assertEquals(0, daoDossier.getNbDossierCloture("dvo"));
+		assertEquals(0, daoDossier.countByUserUsernameAndEtatNotIn("dvo", ETATS_CLOTURES));
 	}
 
 }

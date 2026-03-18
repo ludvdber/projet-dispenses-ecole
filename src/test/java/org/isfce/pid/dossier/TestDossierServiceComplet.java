@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.isfce.pid.controller.error.DossierException;
+import org.isfce.pid.exception.DossierException;
 import org.isfce.pid.dao.IUserDao;
 import org.isfce.pid.model.Dossier;
 import org.isfce.pid.model.EtatDossier;

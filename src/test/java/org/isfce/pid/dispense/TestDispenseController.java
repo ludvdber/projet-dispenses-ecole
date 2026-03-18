@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Collection;
 import java.util.List;
 
-import org.isfce.pid.controller.error.DossierException;
+import org.isfce.pid.exception.DossierException;
 import org.isfce.pid.dto.CoursEtudiantDto;
 import org.isfce.pid.dto.DispenseDto;
 import org.isfce.pid.model.StatutSaisie;

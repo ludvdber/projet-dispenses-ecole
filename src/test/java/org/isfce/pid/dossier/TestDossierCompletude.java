@@ -10,7 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.LocalDate;
 import java.util.Collection;
 
-import org.isfce.pid.controller.error.DossierException;
+import org.isfce.pid.exception.DossierException;
 import org.isfce.pid.dto.CompletudeDossier;
 import org.isfce.pid.dto.DossierDto;
 import org.isfce.pid.dto.UserDto;
