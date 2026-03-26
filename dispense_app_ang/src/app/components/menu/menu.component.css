@@ -28,6 +28,7 @@
 
 .nav-links a {
   color: var(--mat-sys-on-surface-variant);
+  transition: color 0.2s ease, border-bottom-color 0.2s ease;
 }
 
 /* Lien actif : couleur primaire + barre en bas */
@@ -35,6 +36,7 @@
   color: var(--mat-sys-primary) !important;
   border-bottom: 2px solid var(--mat-sys-primary);
   border-radius: 0;
+  transition: border-bottom-color 0.2s ease;
 }
 
 .spacer {

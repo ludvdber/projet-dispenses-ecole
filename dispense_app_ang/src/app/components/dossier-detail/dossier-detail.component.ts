@@ -9,13 +9,17 @@ import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle,
 import {MatChip} from '@angular/material/chips';
 import {MatButton, MatIconButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
-import {MatFormField, MatLabel} from '@angular/material/form-field';
+import {MatFormField, MatLabel, MatError, MatHint} from '@angular/material/form-field';
 import {MatInput} from '@angular/material/input';
 import {MatSelect, MatOption} from '@angular/material/select';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
+import {MatProgressBar} from '@angular/material/progress-bar';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatTooltip} from '@angular/material/tooltip';
+import {MatDialog} from '@angular/material/dialog';
+import {ConfirmDialogComponent} from '../confirm-dialog/confirm-dialog.component';
 import {MatStepper, MatStep, MatStepLabel, MatStepperNext, MatStepperPrevious} from '@angular/material/stepper';
+import {MatDivider} from '@angular/material/divider';
 import {DossierService} from '../../services/dossier.service';
 import {CoursService} from '../../services/cours.service';
 import {DocumentService} from '../../services/document.service';
@@ -33,9 +37,10 @@ import {Dispense} from '../../model/dispense';
     DatePipe,
     MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, MatCardActions,
     MatChip, MatButton, MatIconButton, MatIcon,
-    MatFormField, MatLabel, MatInput, MatSelect, MatOption,
-    MatProgressSpinner, MatTooltip,
+    MatFormField, MatLabel, MatError, MatHint, MatInput, MatSelect, MatOption,
+    MatProgressSpinner, MatProgressBar, MatTooltip,
     MatStepper, MatStep, MatStepLabel, MatStepperNext, MatStepperPrevious,
+    MatDivider,
   ],
   templateUrl: './dossier-detail.component.html',
   styleUrl: './dossier-detail.component.css',
@@ -52,6 +57,7 @@ export class DossierDetailComponent {
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly dialog = inject(MatDialog);
 
   // ======================== Identifiant et navigation ========================
 
@@ -66,7 +72,7 @@ export class DossierDetailComponent {
   private errorRedirect = effect(() => {
     const err = this.dossierResource.error();
     if (err) {
-      this.snackBar.open('Dossier introuvable ou accès interdit', 'Fermer', {duration: 4000});
+      this.snackBar.open('Dossier introuvable ou accès interdit', 'Fermer', {duration: 5000, panelClass: ['snack-error']});
       this.router.navigate(['/dossiers']);
     }
   });
@@ -201,11 +207,24 @@ export class DossierDetailComponent {
     if (ecoleId == null) return false;
     if (ecoleId === 'AUTRE' && !this.nomEcoleLibre().trim()) return false;
 
+    // Vérifier les doublons (même école + même code cours)
+    const codeCours = this.selectedCoursConnu()?.codeCours ?? this.coursCodeCours().trim();
+    if (codeCours && this.isCoursDoublon()(ecoleId, codeCours)) return false;
+
     if (this.selectedCoursConnu()) return true;
 
     const ects = this.coursEcts();
     if (ects != null && ects < 1) return false;
     return this.coursCodeCours().trim().length > 0 && this.coursIntitule().trim().length > 0;
+  });
+
+  isCoursDoublon = computed(() => {
+    const existants = this.cours();
+    return (ecoleId: string, codeCours: string) =>
+      existants.some(c =>
+        (c.codeEcole === ecoleId || (ecoleId === 'AUTRE' && !c.codeEcole)) &&
+        c.codeCours.toLowerCase() === codeCours.toLowerCase()
+      );
   });
 
   // ======================== Signaux formulaire dispense ========================
@@ -216,6 +235,8 @@ export class DossierDetailComponent {
   // ======================== Signaux inline URL/upload pour cours INCONNU ========================
 
   inlineUrlFiche = signal<Record<number, string>>({});
+
+  readonly uploading = signal(false);
 
   // ======================== Helpers ========================
 
@@ -237,6 +258,10 @@ export class DossierDetailComponent {
     this.router.navigate(['/dossiers']);
   }
 
+  onStepChange(): void {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   goToStep(index: number): void {
     const s = this.stepper();
     if (s) s.selectedIndex = index;
@@ -252,36 +277,52 @@ export class DossierDetailComponent {
       next: () => {
         this.reloadCoursData();
         this.resetCoursForm();
-        this.snackBar.open('Cours ajouté', 'OK', {duration: 2000});
+        this.snackBar.open('Cours ajouté', 'Fermer', {duration: 3000});
       },
       error: (err: HttpErrorResponse) => this.showError(err),
     });
   }
 
   supprimerCours(id: number): void {
-    this.coursService.deleteCours(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.coursResource.reload();
-        this.completudeResource.reload();
-        this.snackBar.open('Cours supprimé', 'OK', {duration: 2000});
-      },
-      error: (err: HttpErrorResponse) => this.showError(err),
+    this.dialog.open(ConfirmDialogComponent, {
+      data: { title: 'Confirmation', message: 'Voulez-vous vraiment supprimer ce cours ?' }
+    }).afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.coursService.deleteCours(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+          next: () => {
+            this.coursResource.reload();
+            this.completudeResource.reload();
+            this.snackBar.open('Cours supprimé', 'Fermer', {duration: 3000});
+          },
+          error: (err: HttpErrorResponse) => this.showError(err),
+        });
+      }
     });
   }
+
+  private static readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 Mo
 
   onProgFileSelected(event: Event, coursId: number): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
+    if (file.size > DossierDetailComponent.MAX_FILE_SIZE) {
+      this.snackBar.open('Le fichier dépasse la taille maximale autorisée (5 Mo)', 'Fermer', {duration: 5000, panelClass: ['snack-error']});
+      input.value = '';
+      return;
+    }
+    this.uploading.set(true);
     this.documentService.uploadDocument(this.dossierId(), 'PROGRAMME_COURS', file, coursId)
       .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => {
+          this.uploading.set(false);
           this.documentsResource.reload();
           this.completudeResource.reload();
           input.value = '';
-          this.snackBar.open('Programme uploadé', 'OK', {duration: 2000});
+          this.snackBar.open('Programme uploadé', 'Fermer', {duration: 3000});
         },
         error: (err: HttpErrorResponse) => {
+          this.uploading.set(false);
           input.value = '';
           this.showError(err);
         },
@@ -298,20 +339,26 @@ export class DossierDetailComponent {
         next: () => {
           this.reloadDispenseData();
           this.selectedUeCode.set(null);
-          this.snackBar.open('Dispense créée', 'OK', {duration: 2000});
+          this.snackBar.open('Dispense créée', 'Fermer', {duration: 3000});
         },
         error: (err: HttpErrorResponse) => this.showError(err),
       });
   }
 
   supprimerDispense(id: number): void {
-    this.dossierService.deleteDispense(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.dispenseResource.reload();
-        this.completudeResource.reload();
-        this.snackBar.open('Dispense supprimée', 'OK', {duration: 2000});
-      },
-      error: (err: HttpErrorResponse) => this.showError(err),
+    this.dialog.open(ConfirmDialogComponent, {
+      data: { title: 'Confirmation', message: 'Voulez-vous vraiment supprimer cette dispense ?' }
+    }).afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.dossierService.deleteDispense(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+          next: () => {
+            this.dispenseResource.reload();
+            this.completudeResource.reload();
+            this.snackBar.open('Dispense supprimée', 'Fermer', {duration: 3000});
+          },
+          error: (err: HttpErrorResponse) => this.showError(err),
+        });
+      }
     });
   }
 
@@ -324,7 +371,7 @@ export class DossierDetailComponent {
           this.dispenseResource.reload();
           this.completudeResource.reload();
           this.selectedCoursIdMap.update(m => ({...m, [dispenseId]: null}));
-          this.snackBar.open('Cours lié', 'OK', {duration: 2000});
+          this.snackBar.open('Cours lié', 'Fermer', {duration: 3000});
         },
         error: (err: HttpErrorResponse) => this.showError(err),
       });
@@ -347,15 +394,23 @@ export class DossierDetailComponent {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
+    if (file.size > DossierDetailComponent.MAX_FILE_SIZE) {
+      this.snackBar.open('Le fichier dépasse la taille maximale autorisée (5 Mo)', 'Fermer', {duration: 5000, panelClass: ['snack-error']});
+      input.value = '';
+      return;
+    }
+    this.uploading.set(true);
     this.documentService.uploadDocument(this.dossierId(), typeDoc, file)
       .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => {
+          this.uploading.set(false);
           this.documentsResource.reload();
           this.completudeResource.reload();
           input.value = '';
-          this.snackBar.open('Document uploadé', 'OK', {duration: 2000});
+          this.snackBar.open('Document uploadé', 'Fermer', {duration: 3000});
         },
         error: (err: HttpErrorResponse) => {
+          this.uploading.set(false);
           input.value = '';
           this.showError(err);
         },
@@ -363,13 +418,19 @@ export class DossierDetailComponent {
   }
 
   supprimerDocument(id: number): void {
-    this.documentService.softDeleteDocument(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.documentsResource.reload();
-        this.completudeResource.reload();
-        this.snackBar.open('Document supprimé', 'OK', {duration: 2000});
-      },
-      error: (err: HttpErrorResponse) => this.showError(err),
+    this.dialog.open(ConfirmDialogComponent, {
+      data: { title: 'Confirmation', message: 'Voulez-vous vraiment supprimer ce document ?' }
+    }).afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.documentService.softDeleteDocument(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+          next: () => {
+            this.documentsResource.reload();
+            this.completudeResource.reload();
+            this.snackBar.open('Document supprimé', 'Fermer', {duration: 3000});
+          },
+          error: (err: HttpErrorResponse) => this.showError(err),
+        });
+      }
     });
   }
 
@@ -392,7 +453,7 @@ export class DossierDetailComponent {
   soumettre(): void {
     this.dossierService.submitDossier(this.dossierId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
-        this.snackBar.open('Dossier soumis avec succès !', 'OK', {duration: 3000});
+        this.snackBar.open('Dossier soumis avec succès', 'Fermer', {duration: 3000});
         this.router.navigate(['/dossiers']);
       },
       error: (err: HttpErrorResponse) => this.showError(err),
@@ -439,6 +500,6 @@ export class DossierDetailComponent {
 
   private showError(err: HttpErrorResponse): void {
     const msg = err.error?.error || err.error?.message || 'Erreur inattendue';
-    this.snackBar.open(msg, 'Fermer', {duration: 5000});
+    this.snackBar.open(msg, 'Fermer', {duration: 5000, panelClass: ['snack-error']});
   }
 }

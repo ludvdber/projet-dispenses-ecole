@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * Contrôleur REST pour la consultation des UE et sections.
  * @author Ludovic
@@ -24,35 +26,33 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(path = "/api/ue/", produces = "application/json")
 @PreAuthorize("hasAnyRole('ETUDIANT','ADMIN')")
+@RequiredArgsConstructor
 public class UEControllerRest {
 
 	private final UEService ueService;
 
 	private final MessageSource bundle;
 
-	public UEControllerRest(UEService ueService, MessageSource bundle) {
-		this.ueService = ueService;
-		this.bundle = bundle;
-	}
-
 	@GetMapping("sections")
-	ResponseEntity<List<SectionDto>> getListeSection() {
+	public ResponseEntity<List<SectionDto>> getListeSection() {
 		return ResponseEntity.ok(ueService.getListeSections());
 	}
 
 	@GetMapping("liste")
-	ResponseEntity<List<UEDto>> getListe(@RequestParam(name = "section",required = false,defaultValue = "all") String section) {
+	public ResponseEntity<List<UEDto>> getListe(@RequestParam(name = "section",required = false,defaultValue = "all") String section) {
 		if ("all".equals(section))
 		return ResponseEntity.ok(ueService.getListeUE());
 		return ResponseEntity.ok(ueService.getListeUEBySection(section));
 	}
 
 	@GetMapping("/detail/{code}")
-	ResponseEntity<UEFullDto> getUE(@PathVariable(name = "code") String code, Locale locale) {
+	public ResponseEntity<UEFullDto> getUE(@PathVariable(name = "code") String code, Locale locale) {
 
 		if (!ueService.existUE(code))
 			throw new NoSuchElementException(bundle.getMessage("err.notFound", new String[] { code }, locale));
 
-		return ResponseEntity.ok(ueService.getUE(code).get());
+		return ResponseEntity.ok(ueService.getUE(code)
+				.orElseThrow(() -> new NoSuchElementException(
+						bundle.getMessage("err.notFound", new String[] { code }, locale))));
 	}
 }

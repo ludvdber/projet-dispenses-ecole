@@ -96,7 +96,7 @@
   align-items: center;
   justify-content: center;
   min-height: 300px;
-  opacity: 0.45;
+  opacity: 0.6;
   flex: 1;
 }
 
@@ -105,6 +105,19 @@
   width: 48px;
   height: 48px;
   margin-bottom: 12px;
+}
+
+/* --- Colonnes numériques centrées --- */
+.mat-column-ects, .mat-column-nbPeriodes {
+  text-align: center;
+}
+
+/* En-tête collant */
+th.mat-header-cell {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--mat-sys-surface, white);
 }
 
 /* --- Responsive : mobile < 768px --- */
@@ -146,5 +159,11 @@
 
   .close-btn {
     display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  :host ::ng-deep .mat-mdc-chip.mdc-evolution-chip--selected {
+    font-weight: 600;
   }
 }

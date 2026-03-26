@@ -6,6 +6,7 @@ import org.isfce.pid.dto.CompletudeDossier;
 import org.isfce.pid.dto.DossierDto;
 import org.isfce.pid.service.DossierService;
 import org.isfce.pid.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -27,16 +29,12 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings("null")
 @RestController
 @RequestMapping(path = "/api/dossier/", produces = "application/json")
+@RequiredArgsConstructor
 @Slf4j
 public class DossierController {
 
 	private final DossierService dossierService;
 	private final UserService userService;
-
-	public DossierController(DossierService dossierService, UserService userService) {
-		this.dossierService = dossierService;
-		this.userService = userService;
-	}
 
 	/**
 	 * Crée un dossier pour l'étudiant authentifié.
@@ -48,7 +46,7 @@ public class DossierController {
 			JwtAuthenticationToken auth) {
 		userService.provisionFromJwt(auth);
 		String etu = auth.getToken().getClaimAsString("preferred_username");
-		return ResponseEntity.ok(dossierService.createDossier(objetDemande, etu));
+		return ResponseEntity.status(HttpStatus.CREATED).body(dossierService.createDossier(objetDemande, etu));
 	}
 
 	@PreAuthorize(value = "hasRole('ETUDIANT')")

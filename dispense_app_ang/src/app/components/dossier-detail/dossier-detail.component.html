@@ -6,47 +6,28 @@
 
   <!-- En-tête -->
   <div class="header">
-    <button mat-icon-button (click)="retour()" matTooltip="Retour aux dossiers">
+    <button mat-icon-button (click)="retour()" matTooltip="Retour aux dossiers" aria-label="Retour">
       <mat-icon>arrow_back</mat-icon>
     </button>
     <h2>{{ d.objetDemande }}</h2>
-    <mat-chip [class]="etatColor(d.etat)" highlighted>{{ etatLabel(d.etat) }}</mat-chip>
-  </div>
-
-  <p class="dates">
-    Créé le {{ d.dateCreation | date:'dd/MM/yyyy' }}
-    @if (d.dateSoumis) {
-      — Soumis le {{ d.dateSoumis | date:'dd/MM/yyyy' }}
+    @if (!isModifiable()) {
+      <mat-chip [class]="etatColor(d.etat)" highlighted [matTooltip]="etatMessage(d.etat)">{{ etatLabel(d.etat) }}</mat-chip>
     }
-  </p>
-
-  <!-- Bandeau complétude (toujours visible) -->
-  @if (completude(); as c) {
-    <mat-card class="completude-card" appearance="outlined">
-      <mat-card-content>
-        <div class="completude-row">
-          <span class="completude-item" [class.ok]="c.bulletinOk" [class.ko]="!c.bulletinOk">
-            <mat-icon>{{ c.bulletinOk ? 'check_circle' : 'cancel' }}</mat-icon> Bulletin
-          </span>
-          <span class="completude-item" [class.ok]="c.motivationOk" [class.ko]="!c.motivationOk">
-            <mat-icon>{{ c.motivationOk ? 'check_circle' : 'cancel' }}</mat-icon> Motivation
-          </span>
-          <span class="completude-item" [class.ok]="c.dispensesOk" [class.ko]="!c.dispensesOk">
-            <mat-icon>{{ c.dispensesOk ? 'check_circle' : 'cancel' }}</mat-icon> Dispenses
-          </span>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  }
+  </div>
 
   <!-- ============================== MODE LECTURE ============================== -->
   @if (!isModifiable()) {
 
-    <p class="etat-message">{{ etatMessage(d.etat) }}</p>
+    <p class="dates">
+      Créé le {{ d.dateCreation | date:'dd/MM/yyyy' }}
+      @if (d.dateSoumis && d.dateSoumis !== d.dateCreation) {
+        — Soumis le {{ d.dateSoumis | date:'dd/MM/yyyy' }}
+      }
+    </p>
 
     <h3>Cours réussis</h3>
     @if (cours().length === 0) {
-      <p class="empty-msg">Aucun cours</p>
+      <div class="empty-msg"><mat-icon>inbox</mat-icon><span>Aucun cours</span></div>
     } @else {
       <div class="item-grid">
         @for (c of cours(); track c.id) {
@@ -59,6 +40,13 @@
                 @if (c.ects) { | {{ c.ects }} ECTS }
               </mat-card-subtitle>
             </mat-card-header>
+            @if (c.urlFiche) {
+              <mat-card-content>
+                <a [href]="c.urlFiche" target="_blank" rel="noopener" class="fiche-link">
+                  <mat-icon>open_in_new</mat-icon> Fiche du cours
+                </a>
+              </mat-card-content>
+            }
           </mat-card>
         }
       </div>
@@ -66,7 +54,7 @@
 
     <h3>Dispenses</h3>
     @if (dispenses().length === 0) {
-      <p class="empty-msg">Aucune dispense</p>
+      <div class="empty-msg"><mat-icon>inbox</mat-icon><span>Aucune dispense</span></div>
     } @else {
       <div class="item-grid">
         @for (disp of dispenses(); track disp.id) {
@@ -94,6 +82,9 @@
     }
 
     <h3>Documents</h3>
+    @if (documents().length === 0) {
+      <p class="empty-msg"><mat-icon>description</mat-icon> Aucun document déposé</p>
+    }
     @for (doc of documents(); track doc.id) {
       <div class="doc-row">
         <button mat-button class="doc-link" (click)="telecharger(doc.id!, doc.originalFilename!)">
@@ -105,11 +96,16 @@
   } @else {
 
     <!-- ============================== STEPPER ============================== -->
-    <mat-stepper [linear]="true" #stepper>
+    <mat-stepper [linear]="true" [animationDuration]="'300ms'" labelPosition="bottom" #stepper (selectionChange)="onStepChange()">
 
       <!-- ==================== STEP 1 : COURS RÉUSSIS ==================== -->
       <mat-step [completed]="step1Valid()">
-        <ng-template matStepLabel>Cours réussis</ng-template>
+        <ng-template matStepLabel>
+          <mat-icon class="step-icon">school</mat-icon> Cours réussis
+          @if (cours().length > 0) {
+            <span class="step-count">({{ cours().length }})</span>
+          }
+        </ng-template>
 
         <mat-card class="form-card" appearance="outlined">
           <mat-card-header>
@@ -118,7 +114,7 @@
           <mat-card-content>
             <div class="form-grid">
               <mat-form-field>
-                <mat-label>École</mat-label>
+                <mat-label>École *</mat-label>
                 <mat-select [value]="selectedEcoleId()"
                             (selectionChange)="selectedEcoleId.set($event.value)">
                   @for (ecole of ecoles(); track ecole.code) {
@@ -126,6 +122,9 @@
                   }
                   <mat-option value="AUTRE">Mon école n'est pas dans la liste</mat-option>
                 </mat-select>
+                @if (selectedEcoleId() == null && (coursCodeCours().trim().length > 0 || coursIntitule().trim().length > 0)) {
+                  <mat-error>Sélectionnez une école</mat-error>
+                }
               </mat-form-field>
 
               @if (selectedEcoleId() === 'AUTRE') {
@@ -133,6 +132,9 @@
                   <mat-label>Nom de l'école *</mat-label>
                   <input matInput [value]="nomEcoleLibre()"
                          (input)="nomEcoleLibre.set($any($event.target).value)">
+                  @if (nomEcoleLibre().trim().length === 0 && (coursCodeCours().trim().length > 0 || coursIntitule().trim().length > 0)) {
+                    <mat-error>Nom de l'école requis</mat-error>
+                  }
                 </mat-form-field>
               }
 
@@ -167,18 +169,25 @@
                   <mat-label>Code cours *</mat-label>
                   <input matInput [value]="coursCodeCours()"
                          (input)="coursCodeCours.set($any($event.target).value)">
+                  @if (coursCodeCours().trim().length === 0 && coursIntitule().trim().length > 0) {
+                    <mat-error>Code du cours requis</mat-error>
+                  }
                 </mat-form-field>
 
                 <mat-form-field>
                   <mat-label>Intitulé *</mat-label>
                   <input matInput [value]="coursIntitule()"
                          (input)="coursIntitule.set($any($event.target).value)">
+                  @if (coursIntitule().trim().length === 0 && coursCodeCours().trim().length > 0) {
+                    <mat-error>Intitulé requis</mat-error>
+                  }
                 </mat-form-field>
 
                 <mat-form-field>
                   <mat-label>ECTS</mat-label>
-                  <input matInput type="number" min="1" [value]="coursEcts()"
+                  <input matInput type="number" min="1" max="60" [value]="coursEcts()"
                          (input)="coursEcts.set($any($event.target).value ? +$any($event.target).value : null)">
+                  <mat-hint>Entre 1 et 60</mat-hint>
                 </mat-form-field>
 
                 <mat-form-field>
@@ -193,11 +202,16 @@
             <button mat-flat-button color="primary" [disabled]="!coursFormValid()" (click)="ajouterCours()">
               <mat-icon>add</mat-icon> Ajouter
             </button>
+            @if (selectedEcoleId() && isCoursDoublon()(selectedEcoleId()!, selectedCoursConnu()?.codeCours ?? coursCodeCours().trim())) {
+              <mat-error>Ce cours a déjà été ajouté</mat-error>
+            }
           </mat-card-actions>
         </mat-card>
 
+        <mat-divider />
+
         @if (cours().length === 0) {
-          <p class="empty-msg">Aucun cours ajouté</p>
+          <div class="empty-msg"><mat-icon>inbox</mat-icon><span>Aucun cours ajouté</span></div>
         } @else {
           @for (c of cours(); track c.id) {
             <div class="cours-row">
@@ -213,7 +227,7 @@
                   {{ c.codeCours }} — {{ c.intitule }}
                   @if (c.ects) { | {{ c.ects }} ECTS }
                 </span>
-                <button mat-icon-button color="warn" (click)="supprimerCours(c.id!)" matTooltip="Supprimer">
+                <button mat-icon-button color="warn" (click)="supprimerCours(c.id!)" matTooltip="Supprimer" aria-label="Supprimer">
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
@@ -225,11 +239,16 @@
                   </span>
                 } @else {
                   <div class="inconnu-justify">
+                    @if (uploading()) {
+                      <mat-progress-bar mode="indeterminate" />
+                    }
                     <input type="file" accept=".pdf" class="file-input"
+                           aria-label="Sélectionner un fichier PDF"
                            #progInput (change)="onProgFileSelected($event, c.id!)">
-                    <button mat-button (click)="progInput.click()">
-                      <mat-icon>upload</mat-icon> Uploader programme (PDF)
+                    <button mat-stroked-button color="primary" (click)="progInput.click()" [disabled]="uploading()">
+                      <mat-icon>upload_file</mat-icon> Joindre la fiche descriptive du cours
                     </button>
+                    <p class="upload-hint">Fiche officielle du cours au format PDF (max 5 Mo)</p>
                   </div>
                 }
               }
@@ -246,13 +265,18 @@
 
       <!-- ==================== STEP 2 : DISPENSES ==================== -->
       <mat-step [completed]="step2Valid()">
-        <ng-template matStepLabel>Demandes de dispense</ng-template>
+        <ng-template matStepLabel>
+          <mat-icon class="step-icon">assignment</mat-icon> Demandes de dispense
+          @if (dispenses().length > 0) {
+            <span class="step-count">({{ dispenses().length }})</span>
+          }
+        </ng-template>
 
         @if (suggestions().length > 0) {
           <h3 class="section-title">Suggestions automatiques</h3>
           <div class="item-grid">
             @for (s of suggestions(); track s.codeUe) {
-              <mat-card appearance="outlined" [class.suggestion-complete]="s.complet" [class.suggestion-partial]="!s.complet">
+              <mat-card appearance="outlined" class="suggestion-card" [class.suggestion-complete]="s.complet" [class.suggestion-partial]="!s.complet">
                 <mat-card-header>
                   <mat-card-title>{{ s.codeUe }} — {{ s.nomUe }}</mat-card-title>
                   <mat-card-subtitle>
@@ -265,6 +289,7 @@
                   </mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
+                  <mat-progress-bar mode="determinate" [value]="(s.coursPresents / s.coursRequis) * 100"></mat-progress-bar>
                   <p class="section-label">Cours correspondants :</p>
                   @for (nom of s.coursCorrespondants; track nom) {
                     <p class="cours-corresp">{{ nom }}</p>
@@ -276,13 +301,17 @@
                       <mat-icon>add_circle</mat-icon> Ajouter cette dispense
                     </button>
                   } @else {
-                    <span class="partial-hint">Ajoutez les cours manquants à l'étape 1</span>
+                    <span class="partial-hint">
+                      <a mat-button (click)="stepper.selectedIndex = 0">Ajoutez les cours manquants à l'étape 1</a>
+                    </span>
                   }
                 </mat-card-actions>
               </mat-card>
             }
           </div>
         }
+
+        <mat-divider />
 
         <h3 class="section-title">Ajouter manuellement</h3>
         <div class="manual-dispense-row">
@@ -303,7 +332,7 @@
         </div>
 
         @if (dispenses().length === 0) {
-          <p class="empty-msg">Aucune dispense demandée</p>
+          <div class="empty-msg"><mat-icon>inbox</mat-icon><span>Aucune dispense demandée</span></div>
         } @else {
           <div class="item-grid">
             @for (disp of dispenses(); track disp.id) {
@@ -322,7 +351,7 @@
                         <mat-chip>{{ cj.codeCours }}</mat-chip>
                         <button mat-icon-button class="chip-remove"
                                 (click)="delierCours(disp.id!, cj.id!)"
-                                matTooltip="Délier ce cours">
+                                matTooltip="Délier ce cours" aria-label="Délier ce cours">
                           <mat-icon>close</mat-icon>
                         </button>
                       }
@@ -350,8 +379,8 @@
                   }
                 </mat-card-content>
                 <mat-card-actions>
-                  <button mat-button color="warn" (click)="supprimerDispense(disp.id!)">
-                    <mat-icon>delete</mat-icon> Supprimer
+                  <button mat-icon-button color="warn" (click)="supprimerDispense(disp.id!)" matTooltip="Supprimer" aria-label="Supprimer">
+                    <mat-icon>delete</mat-icon>
                   </button>
                 </mat-card-actions>
               </mat-card>
@@ -371,7 +400,12 @@
 
       <!-- ==================== STEP 3 : DOCUMENTS ==================== -->
       <mat-step [completed]="step3Valid()">
-        <ng-template matStepLabel>Documents</ng-template>
+        <ng-template matStepLabel>
+          <mat-icon class="step-icon">description</mat-icon> Documents
+          @if (documents().length > 0) {
+            <span class="step-count">({{ documents().length }})</span>
+          }
+        </ng-template>
 
         <div class="docs-flex">
           <div class="doc-zone">
@@ -386,7 +420,7 @@
                 <button mat-button class="doc-link" (click)="telecharger(doc.id!, doc.originalFilename!)">
                   <mat-icon>download</mat-icon> {{ doc.originalFilename }}
                 </button>
-                <button mat-icon-button color="warn" (click)="supprimerDocument(doc.id!)" matTooltip="Supprimer">
+                <button mat-icon-button color="warn" (click)="supprimerDocument(doc.id!)" matTooltip="Supprimer" aria-label="Supprimer">
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
@@ -394,11 +428,16 @@
             @if (bulletinDocs().length > 0) {
               <span class="upload-ok"><mat-icon>check_circle</mat-icon></span>
             } @else {
+              @if (uploading()) {
+                <mat-progress-bar mode="indeterminate" />
+              }
               <input type="file" accept=".pdf" class="file-input"
+                     aria-label="Sélectionner un fichier PDF"
                      #bulletinInput (change)="onFileSelected($event, 'BULLETIN')">
-              <button mat-button (click)="bulletinInput.click()">
-                <mat-icon>upload</mat-icon> Uploader bulletin (PDF)
+              <button mat-stroked-button color="primary" (click)="bulletinInput.click()" [disabled]="uploading()">
+                <mat-icon>upload_file</mat-icon> Choisir un fichier PDF
               </button>
+              <p class="upload-hint">Format accepté : PDF uniquement (max 5 Mo)</p>
             }
           </div>
 
@@ -411,7 +450,7 @@
                 <button mat-button class="doc-link" (click)="telecharger(doc.id!, doc.originalFilename!)">
                   <mat-icon>download</mat-icon> {{ doc.originalFilename }}
                 </button>
-                <button mat-icon-button color="warn" (click)="supprimerDocument(doc.id!)" matTooltip="Supprimer">
+                <button mat-icon-button color="warn" (click)="supprimerDocument(doc.id!)" matTooltip="Supprimer" aria-label="Supprimer">
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
@@ -419,11 +458,16 @@
             @if (motivationDocs().length > 0) {
               <span class="upload-ok"><mat-icon>check_circle</mat-icon></span>
             } @else {
+              @if (uploading()) {
+                <mat-progress-bar mode="indeterminate" />
+              }
               <input type="file" accept=".pdf" class="file-input"
+                     aria-label="Sélectionner un fichier PDF"
                      #motivationInput (change)="onFileSelected($event, 'MOTIVATION')">
-              <button mat-button (click)="motivationInput.click()">
-                <mat-icon>upload</mat-icon> Uploader motivation (PDF)
+              <button mat-stroked-button color="primary" (click)="motivationInput.click()" [disabled]="uploading()">
+                <mat-icon>upload_file</mat-icon> Choisir un fichier PDF
               </button>
+              <p class="upload-hint">Format accepté : PDF uniquement (max 5 Mo)</p>
             }
           </div>
         </div>
@@ -440,7 +484,7 @@
 
       <!-- ==================== STEP 4 : SOUMETTRE ==================== -->
       <mat-step>
-        <ng-template matStepLabel>Soumettre</ng-template>
+        <ng-template matStepLabel><mat-icon class="step-icon">send</mat-icon> Soumettre</ng-template>
 
         @if (completude(); as c) {
           <div class="recap-list">

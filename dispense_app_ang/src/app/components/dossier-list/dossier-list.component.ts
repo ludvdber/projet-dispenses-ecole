@@ -9,7 +9,7 @@ import {MatIcon} from '@angular/material/icon';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {MatTooltip} from '@angular/material/tooltip';
 import {DossierService} from '../../services/dossier.service';
-import {EtatDossier, etatLabel, etatColor} from '../../model/etat-dossier';
+import {EtatDossier, etatLabel, etatColor, etatMessage} from '../../model/etat-dossier';
 
 /**
  * Liste des dossiers de dispense de l'étudiant connecté.
@@ -38,6 +38,7 @@ export class DossierListComponent {
 
   etatLabel = etatLabel;
   etatColor = etatColor;
+  etatMessage = etatMessage;
 
   voirDossier(id: number) {
     this.router.navigate(['/dossier', id]);

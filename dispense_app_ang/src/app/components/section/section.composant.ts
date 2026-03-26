@@ -13,6 +13,8 @@ import {MatProgressBar} from '@angular/material/progress-bar';
 import {MatButton, MatIconButton} from '@angular/material/button';
 import {EuDetailComponent} from '../eu-detail/eu-detail.component';
 import {MatIcon} from '@angular/material/icon';
+import {MatRipple} from '@angular/material/core';
+import {MatTooltip} from '@angular/material/tooltip';
 
 /**
  * Page de consultation des UE par section.
@@ -34,6 +36,8 @@ import {MatIcon} from '@angular/material/icon';
     MatIconButton,
     EuDetailComponent,
     MatIcon,
+    MatRipple,
+    MatTooltip,
   ],
   templateUrl: './section.composant.html',
   styleUrl: './section.composant.css',

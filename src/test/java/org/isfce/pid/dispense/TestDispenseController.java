@@ -111,7 +111,7 @@ class TestDispenseController {
 						.param("dossierId", "3")
 						.param("codeUe", "UE1")
 						.with(authentication(tokenEt1)))
-				.andExpect(status().isOk())
+				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.id").value(1))
 				.andExpect(jsonPath("$.codeUe").value("UE1"))
 				.andExpect(jsonPath("$.nomUe").value("Algorithmique"))

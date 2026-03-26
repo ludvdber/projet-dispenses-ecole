@@ -8,6 +8,7 @@ import org.isfce.pid.service.DocumentService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -47,7 +48,7 @@ public class DocumentController {
 			@RequestParam("file") MultipartFile file,
 			JwtAuthenticationToken auth) {
 		String username = auth.getToken().getClaimAsString("preferred_username");
-		return ResponseEntity.ok(documentService.uploadDocument(
+		return ResponseEntity.status(HttpStatus.CREATED).body(documentService.uploadDocument(
 				dossierId, coursEtudiantId, typeDoc, file, username));
 	}
 

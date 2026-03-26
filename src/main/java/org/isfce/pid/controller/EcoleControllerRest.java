@@ -28,12 +28,12 @@ public class EcoleControllerRest {
 	private final EcoleService ecoleService;
 
 	@GetMapping
-	ResponseEntity<List<EcoleDto>> getAll() {
+	public ResponseEntity<List<EcoleDto>> getAll() {
 		return ResponseEntity.ok(ecoleService.getAllEcoles());
 	}
 
 	@GetMapping("/{code}/cours")
-	ResponseEntity<List<CoursDto>> getCoursByEcole(@PathVariable("code") String code) {
+	public ResponseEntity<List<CoursDto>> getCoursByEcole(@PathVariable("code") String code) {
 		return ResponseEntity.ok(ecoleService.getCoursByEcole(code));
 	}
 }

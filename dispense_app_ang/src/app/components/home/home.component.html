@@ -8,7 +8,7 @@
   </section>
 
   <div class="actions">
-    <mat-card class="action-card" routerLink="/ues">
+    <mat-card class="action-card" routerLink="/ues" role="link" tabindex="0">
       <mat-card-content>
         <mat-icon class="action-icon">menu_book</mat-icon>
         <h3>Parcourir les UE</h3>
@@ -17,7 +17,7 @@
     </mat-card>
 
     @if (authenticated()) {
-      <mat-card class="action-card" routerLink="/createDossier">
+      <mat-card class="action-card" routerLink="/createDossier" role="link" tabindex="0">
         <mat-card-content>
           <mat-icon class="action-icon">note_add</mat-icon>
           <h3>Nouveau dossier</h3>
@@ -25,7 +25,7 @@
         </mat-card-content>
       </mat-card>
 
-      <mat-card class="action-card" routerLink="/profile">
+      <mat-card class="action-card" routerLink="/profile" role="link" tabindex="0">
         <mat-card-content>
           <mat-icon class="action-icon">person</mat-icon>
           <h3>Mon profil</h3>
@@ -33,7 +33,7 @@
         </mat-card-content>
       </mat-card>
     } @else {
-      <mat-card class="action-card" (click)="login()">
+      <mat-card class="action-card" (click)="login()" (keydown.enter)="login()" role="button" tabindex="0">
         <mat-card-content>
           <mat-icon class="action-icon">login</mat-icon>
           <h3>Se connecter</h3>

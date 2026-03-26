@@ -41,6 +41,15 @@ body {
 .etat-rouge { --mdc-chip-elevated-container-color: #ffebee; --mdc-chip-label-text-color: #c62828; }
 .etat-vert { --mdc-chip-elevated-container-color: #e8f5e9; --mdc-chip-label-text-color: #2e7d32; }
 .etat-gris { --mdc-chip-elevated-container-color: #f5f5f5; --mdc-chip-label-text-color: #616161; }
+.badge-reconnu { --mdc-chip-elevated-container-color: #e8f5e9; --mdc-chip-label-text-color: #2e7d32; margin-top: 0.5rem; }
+.badge-inconnu { --mdc-chip-elevated-container-color: #fff3e0; --mdc-chip-label-text-color: #e65100; margin-top: 0.5rem; }
+
+/* Snackbar erreur */
+.snack-error {
+  --mdc-snackbar-container-color: #d32f2f;
+  --mdc-snackbar-supporting-text-color: white;
+  --mat-snack-bar-button-color: white;
+}
 
 /* --- Responsive --- */
 @media (max-width: 768px) {

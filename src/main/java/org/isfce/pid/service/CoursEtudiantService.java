@@ -17,7 +17,7 @@ import org.isfce.pid.model.StatutSaisie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Service de gestion des cours externes saisis par l'étudiant.
@@ -25,15 +25,15 @@ import lombok.AllArgsConstructor;
  */
 @SuppressWarnings("null")
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Transactional
 public class CoursEtudiantService {
 
-	private IDossierDao daoDossier;
-	private ICoursEtudiantDao daoCoursEtudiant;
-	private DocumentService documentService;
-	private IEcoleDao daoEcole;
-	private ICorrCoursDao daoCorrCours;
+	private final IDossierDao daoDossier;
+	private final ICoursEtudiantDao daoCoursEtudiant;
+	private final DocumentService documentService;
+	private final IEcoleDao daoEcole;
+	private final ICorrCoursDao daoCorrCours;
 
 	/**
 	 * Ajoute un cours étudiant à un dossier.

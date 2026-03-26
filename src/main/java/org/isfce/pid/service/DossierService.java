@@ -2,8 +2,10 @@ package org.isfce.pid.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.isfce.pid.exception.DossierException;
 import org.isfce.pid.dao.IDispenseCoursDao;
@@ -110,8 +112,16 @@ public class DossierService {
 		boolean bulletinOk = hasBulletin(dossierId);
 		boolean motivationOk = hasMotivation(dossierId);
 		List<Dispense> dispenses = daoDispense.findByDossierId(dossierId);
-		boolean dispensesOk = hasDispenseAvecCours(dispenses);
-		CoursInconnusResult coursInconnusResult = checkCoursInconnus(dispenses);
+
+		// Charger tous les DispenseCours en une seule requête (évite N+1)
+		List<Long> dispenseIds = dispenses.stream().map(Dispense::getId).toList();
+		Map<Long, List<DispenseCours>> dcByDispense = dispenseIds.isEmpty()
+				? Map.of()
+				: daoDispenseCours.findByDispenseIdIn(dispenseIds).stream()
+						.collect(Collectors.groupingBy(dc -> dc.getDispense().getId()));
+
+		boolean dispensesOk = hasDispenseAvecCours(dispenses, dcByDispense);
+		CoursInconnusResult coursInconnusResult = checkCoursInconnus(dispenses, dcByDispense);
 
 		boolean complet = bulletinOk && motivationOk && dispensesOk && coursInconnusResult.ok;
 		return new CompletudeDossier(complet, bulletinOk, motivationOk, dispensesOk,
@@ -128,9 +138,11 @@ public class DossierService {
 				dossierId, TypeDoc.MOTIVATION) >= 1;
 	}
 
-	private boolean hasDispenseAvecCours(List<Dispense> dispenses) {
+	private boolean hasDispenseAvecCours(List<Dispense> dispenses,
+			Map<Long, List<DispenseCours>> dcByDispense) {
 		for (Dispense d : dispenses) {
-			if (!daoDispenseCours.findByDispenseId(d.getId()).isEmpty()) {
+			List<DispenseCours> dcs = dcByDispense.getOrDefault(d.getId(), List.of());
+			if (!dcs.isEmpty()) {
 				return true;
 			}
 		}
@@ -139,11 +151,12 @@ public class DossierService {
 
 	private record CoursInconnusResult(boolean ok, boolean hasCoursInconnus) {}
 
-	private CoursInconnusResult checkCoursInconnus(List<Dispense> dispenses) {
+	private CoursInconnusResult checkCoursInconnus(List<Dispense> dispenses,
+			Map<Long, List<DispenseCours>> dcByDispense) {
 		boolean ok = true;
 		boolean hasCoursInconnus = false;
 		for (Dispense d : dispenses) {
-			for (DispenseCours dc : daoDispenseCours.findByDispenseId(d.getId())) {
+			for (DispenseCours dc : dcByDispense.getOrDefault(d.getId(), List.of())) {
 				CoursEtudiant cours = dc.getCoursEtudiant();
 				if (cours.getStatutSaisie() == StatutSaisie.INCONNU) {
 					hasCoursInconnus = true;

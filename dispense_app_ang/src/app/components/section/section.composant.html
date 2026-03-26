@@ -47,12 +47,16 @@
           <td mat-cell *matCellDef="let ue">{{ ue.nbPeriodes }}</td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
         <tr mat-row
             *matRowDef="let row; columns: displayedColumns"
             (click)="selectUe(row)"
+            tabindex="0"
+            (keydown.enter)="selectUe(row)"
+            role="button"
             [class.selected-row]="row === selectedUe()"
-            class="clickable-row">
+            class="clickable-row"
+            matRipple>
         </tr>
       </table>
     </div>
@@ -76,7 +80,7 @@
           <mat-icon>arrow_back</mat-icon> Retour
         </button>
         <span class="header-spacer"></span>
-        <button mat-icon-button (click)="closeDetail()" class="close-btn">
+        <button mat-icon-button (click)="closeDetail()" matTooltip="Fermer" aria-label="Fermer le détail" class="close-btn">
           <mat-icon>close</mat-icon>
         </button>
       </div>

@@ -1,6 +1,7 @@
 @if (isLoading()) {
   <div class="center">
     <mat-spinner diameter="48" />
+    <p class="loading-text">Chargement...</p>
   </div>
 } @else {
   @if (dossiers().length === 0) {
@@ -26,7 +27,7 @@
           </mat-card-header>
           <mat-card-content>
             <div class="badges">
-              <mat-chip [class]="etatColor(d.etat)" highlighted>
+              <mat-chip [class]="etatColor(d.etat)" highlighted [matTooltip]="etatMessage(d.etat)">
                 {{ etatLabel(d.etat) }}
               </mat-chip>
               @if (d.complet) {
@@ -45,6 +46,6 @@
   }
 }
 
-<button mat-fab class="fab-new" matTooltip="Nouveau dossier" (click)="nouveauDossier()">
+<button mat-fab class="fab-new" matTooltip="Nouveau dossier" aria-label="Nouveau dossier" (click)="nouveauDossier()">
   <mat-icon>add</mat-icon>
 </button>

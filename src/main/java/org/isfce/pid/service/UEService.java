@@ -47,7 +47,7 @@ public class UEService {
 	 * Retourne la liste de toutes les UE sans les acquis (DTO léger).
 	 */
 	public List<UEDto> getListeUE() {
-		return mapper.toListUELazyDto(daoUE.findAll());
+		return mapper.toListUELazyDto(daoUE.findAll()); 
 	}
 
 	/**

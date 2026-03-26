@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -23,14 +24,11 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings("null")
 @RestController
 @RequestMapping(path = "/api/user", produces = "application/json")
+@RequiredArgsConstructor
 @Slf4j
 public class UserController {
 
 	private final UserService userService;
-
-	public UserController(UserService userService) {
-		this.userService = userService;
-	}
 
 	@PreAuthorize(value = "hasAnyRole('ADMIN')")
 	@GetMapping(params = "all")

@@ -9,7 +9,7 @@ import org.isfce.pid.model.User;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author Ludovic
  */
 @SuppressWarnings("null")
-@Transactional
+@Transactional(readOnly = true)
 @Service
 @Slf4j
 public class UserService {
@@ -47,6 +47,7 @@ public class UserService {
 	 * s'il n'existe pas encore (lazy provisioning).
 	 * @return le User existant ou nouvellement créé
 	 */
+	@Transactional
 	public User provisionFromJwt(JwtAuthenticationToken auth) {
 		String username = auth.getToken().getClaimAsString("preferred_username");
 		return daoUser.findById(username).orElseGet(() -> {

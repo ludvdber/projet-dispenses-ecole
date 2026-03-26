@@ -1,5 +1,6 @@
 package org.isfce.pid.dao;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.isfce.pid.model.DispenseCours;
@@ -14,6 +15,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface IDispenseCoursDao extends JpaRepository<DispenseCours, DispenseCoursId> {
 
 	List<DispenseCours> findByDispenseId(Long dispenseId);
+
+	List<DispenseCours> findByDispenseIdIn(Collection<Long> dispenseIds);
 
 	void deleteByDispenseId(Long dispenseId);
 }

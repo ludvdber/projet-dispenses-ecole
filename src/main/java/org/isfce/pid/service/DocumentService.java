@@ -38,7 +38,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @SuppressWarnings("null")
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class DocumentService {
 
 	private final IDossierDao daoDossier;
@@ -61,6 +61,7 @@ public class DocumentService {
 	/**
 	 * Upload un document lié à un dossier ou à un cours étudiant (XOR).
 	 */
+	@Transactional
 	public DocumentDto uploadDocument(Long dossierId, Long coursEtudiantId,
 			TypeDoc typeDoc, MultipartFile file, String username) {
 
@@ -138,6 +139,7 @@ public class DocumentService {
 	/**
 	 * Soft-delete un document (positionne deletedAt).
 	 */
+	@Transactional
 	public DocumentDto softDeleteDocument(Long documentId, String username) {
 		Document doc = daoDocument.findById(documentId)
 				.orElseThrow(() -> new DossierException("err.document.notFound"));
@@ -215,6 +217,7 @@ public class DocumentService {
 	/**
 	 * Supprime les fichiers physiques + enregistrements BDD de tous les documents liés à un cours.
 	 */
+	@Transactional
 	public void deleteAllByCoursEtudiantId(Long coursEtudiantId) {
 		List<Document> docs = daoDocument.findByCoursEtudiantIdAndDeletedAtIsNull(coursEtudiantId);
 		for (Document doc : docs) {

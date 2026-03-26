@@ -168,7 +168,7 @@ class TestDossierController {
 		mockMvc.perform(post("/api/dossier/create")
 						.param("objetDemande", "Ma demande")
 						.with(authentication(tokenEt1)))
-				.andExpect(status().isOk())
+				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.id").value(5))
 				.andExpect(jsonPath("$.objetDemande").value("Ma demande"))
 				.andExpect(jsonPath("$.etat").value("DEMANDE_EN_COURS"))

@@ -38,7 +38,7 @@ public interface UEMapper {
 	/***** avec aquis sans avoir la FKUE */
 	@Mapping(source = "acquis", target = "acquis")
 	UEFullDto toUEFullDto(UE ue);
-
+ 
 	List<UEFullDto> toListUEFullDto(List<UE> liste);
 
 	/************************* Mapping DTO vers UE******************************************/

@@ -30,14 +30,14 @@
       </button>
     } @else {
       <span class="username">{{ getUsername() }}</span>
-      <button mat-icon-button matTooltip="Se déconnecter" (click)="logout()">
+      <button mat-icon-button matTooltip="Se déconnecter" aria-label="Se déconnecter" (click)="logout()">
         <mat-icon>logout</mat-icon>
       </button>
     }
   </div>
 
   <!-- Menu hamburger (mobile) -->
-  <button mat-icon-button class="mobile-menu-btn" [matMenuTriggerFor]="mobileMenu">
+  <button mat-icon-button class="mobile-menu-btn" [matMenuTriggerFor]="mobileMenu" aria-label="Menu">
     <mat-icon>menu</mat-icon>
   </button>
 

@@ -123,7 +123,7 @@ class TestDocumentController {
 						.param("dossierId", "3")
 						.param("typeDoc", "BULLETIN")
 						.with(authentication(tokenEt1)))
-				.andExpect(status().isOk())
+				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.id").value(1))
 				.andExpect(jsonPath("$.typeDoc").value("BULLETIN"))
 				.andExpect(jsonPath("$.originalFilename").value("bulletin.pdf"))

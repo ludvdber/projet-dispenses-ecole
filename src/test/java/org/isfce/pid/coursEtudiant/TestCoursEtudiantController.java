@@ -119,7 +119,7 @@ class TestCoursEtudiantController {
 						.with(authentication(tokenEt1))
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(input)))
-				.andExpect(status().isOk())
+				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.id").value(1))
 				.andExpect(jsonPath("$.statutSaisie").value("AUTO_RECONNU"))
 				.andExpect(jsonPath("$.corrCoursId").value(1))
@@ -136,7 +136,7 @@ class TestCoursEtudiantController {
 						.with(authentication(tokenEt1))
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(input)))
-				.andExpect(status().isOk())
+				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.statutSaisie").value("INCONNU"))
 				.andExpect(jsonPath("$.corrCoursId").isEmpty())
 				.andExpect(jsonPath("$.codeEcole").value("LDV"));
@@ -152,7 +152,7 @@ class TestCoursEtudiantController {
 						.with(authentication(tokenEt1))
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(input)))
-				.andExpect(status().isOk())
+				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.statutSaisie").value("INCONNU"))
 				.andExpect(jsonPath("$.nomEcole").value("Autre école"))
 				.andExpect(jsonPath("$.codeEcole").isEmpty());

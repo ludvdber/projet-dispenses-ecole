@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.isfce.pid.dto.DispenseDto;
 import org.isfce.pid.service.DispenseService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -40,7 +41,7 @@ public class DispenseController {
 			@RequestParam("codeUe") String codeUe,
 			JwtAuthenticationToken auth) {
 		String username = auth.getToken().getClaimAsString("preferred_username");
-		return ResponseEntity.ok(dispenseService.createDispense(dossierId, codeUe, username));
+		return ResponseEntity.status(HttpStatus.CREATED).body(dispenseService.createDispense(dossierId, codeUe, username));
 	}
 
 	/**
