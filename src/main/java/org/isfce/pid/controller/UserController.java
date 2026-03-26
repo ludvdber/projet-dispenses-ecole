@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
  * Contrôleur REST pour la gestion des utilisateurs.
  * @author Ludovic
  */
-@SuppressWarnings("null")
 @RestController
 @RequestMapping(path = "/api/user", produces = "application/json")
 @RequiredArgsConstructor
@@ -39,10 +38,7 @@ public class UserController {
 	/**
 	 * Retourne le profil d'un utilisateur.
 	 * Seul un ADMIN ou l'utilisateur lui-même peut consulter un profil.
-	 * La vérification est faite manuellement car Eclipse JDT ne compile pas
-	 * avec le flag {@code -parameters}, ce qui empêche Spring Security de
-	 * résoudre les noms de paramètres dans les expressions SpEL.
-	 *
+	 * 
 	 * @author Ludovic
 	 */
 	@GetMapping("/profile/{username}")

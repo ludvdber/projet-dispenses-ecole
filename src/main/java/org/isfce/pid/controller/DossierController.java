@@ -26,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @author Ludovic
  */
-@SuppressWarnings("null")
 @RestController
 @RequestMapping(path = "/api/dossier/", produces = "application/json")
 @RequiredArgsConstructor
@@ -38,7 +37,6 @@ public class DossierController {
 
 	/**
 	 * Crée un dossier pour l'étudiant authentifié.
-	 * Provisionne le user depuis Keycloak si nécessaire.
 	 */
 	@PreAuthorize(value = "hasRole('ETUDIANT')")
 	@PostMapping("create")
@@ -69,7 +67,7 @@ public class DossierController {
 	public ResponseEntity<CompletudeDossier> checkCompletude(@PathVariable("id") Long id,
 			JwtAuthenticationToken auth) {
 		String username = auth.getToken().getClaimAsString("preferred_username");
-		// Vérifie ownership
+		// Vérifie que le dossier appartient bien à l'étudiant  
 		dossierService.getDossier(id, username);
 		return ResponseEntity.ok(dossierService.checkCompletude(id));
 	}

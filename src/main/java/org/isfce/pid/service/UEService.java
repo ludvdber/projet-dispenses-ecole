@@ -21,8 +21,6 @@ import lombok.RequiredArgsConstructor;
  * Service de consultation des UE et sections.
  * @author Ludovic
  */
-// L'analyse null d'Eclipse génère des faux positifs sur les retours de Spring Data JPA
-// (save(), findById()…) dont les @NonNull ne sont pas toujours lus depuis le classpath.
 @SuppressWarnings("null")
 @Service
 @RequiredArgsConstructor
@@ -44,14 +42,14 @@ public class UEService {
 	}
 
 	/**
-	 * Retourne la liste de toutes les UE sans les acquis (DTO léger).
+	 * Retourne la liste de toutes les UE sans les acquis.
 	 */
 	public List<UEDto> getListeUE() {
 		return mapper.toListUELazyDto(daoUE.findAll()); 
 	}
 
 	/**
-	 * Retourne la liste des UE d'une section sans les acquis (DTO léger).
+	 * Retourne la liste des UE d'une section sans les acquis.
 	 */
 	public List<UEDto> getListeUEBySection(String sectionCode) {
 		return daoSection.findById(sectionCode)
@@ -61,7 +59,7 @@ public class UEService {
 	}
 
 	/**
-	 * Retourne la liste de toutes les sections (DTO léger).
+	 * Retourne la liste de toutes les sections.
 	 */
 	public List<SectionDto> getListeSections() {
 		return daoSection.findAll().stream()

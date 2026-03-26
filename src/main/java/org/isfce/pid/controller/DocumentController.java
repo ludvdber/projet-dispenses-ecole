@@ -37,7 +37,7 @@ public class DocumentController {
 	private final DocumentService documentService;
 
 	/**
-	 * Upload un document (multipart/form-data).
+	 * Upload un document.
 	 */
 	@PreAuthorize("hasRole('ETUDIANT')")
 	@PostMapping(path = "upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -76,7 +76,7 @@ public class DocumentController {
 	}
 
 	/**
-	 * Télécharge un document (streaming).
+	 * Télécharge un document.
 	 */
 	@PreAuthorize("hasRole('ETUDIANT')")
 	@GetMapping("{id}/download")

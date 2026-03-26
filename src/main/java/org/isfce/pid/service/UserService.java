@@ -44,7 +44,7 @@ public class UserService {
 
 	/**
 	 * Crée le user en BDD à partir des claims JWT Keycloak
-	 * s'il n'existe pas encore (lazy provisioning).
+	 * s'il n'existe pas encore
 	 * @return le User existant ou nouvellement créé
 	 */
 	@Transactional

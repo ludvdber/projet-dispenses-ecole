@@ -23,7 +23,6 @@ import lombok.RequiredArgsConstructor;
  *
  * @author Ludovic
  */
-@SuppressWarnings("null")
 @RestController
 @RequestMapping(path = "/api/dispense/", produces = "application/json")
 @RequiredArgsConstructor

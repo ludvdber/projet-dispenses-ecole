@@ -16,18 +16,17 @@ import org.mapstruct.Mapping;
 
 /**
  * Mapper MapStruct pour la conversion entre entités et DTOs (UE, Acquis, Dossier).
- * <p>componentModel = "spring" permet de dire à Spring de générer un Bean pour permettre l'Autowired.
- * Attention l'implémentation générée sera dans un dossier qui doit être visible dans les sources du projet (STS pas automatique).
- * Chemin de la classe générée: build\generated\sources\annotationProcessor\java\main\</p>
+ * componentModel = "spring" permet de dire à Spring de générer un Bean pour permettre l'Autowired.
+ * Chemin de la classe générée: build\generated\sources\annotationProcessor\java\main\
  * @author Ludovic
  */
 @Mapper(componentModel = "spring")
 public interface UEMapper {
 	
-	/************************ Mapping Dossier vers DossierDto ********************************/
+	//Mapping Dossier vers DossierDto
 	DossierDto toDossierDto(Dossier dossier);
 	
-	/************************* Mapping UE vers DTO ********************************************/
+	//Mapping UE vers DTO
 	/***** sans aquis  */
 	// UE ==> DTO Lazy
 	UEDto toUELazyDto(UE ue);
@@ -41,7 +40,7 @@ public interface UEMapper {
  
 	List<UEFullDto> toListUEFullDto(List<UE> liste);
 
-	/************************* Mapping DTO vers UE******************************************/
+	//Mapping DTO vers UE
 	/***** sans aquis  */
 	@Mapping(target = "acquis", ignore = true)
 	UE fromUEDto(UEDto ueDto);
@@ -65,13 +64,13 @@ public interface UEMapper {
 				.collect(Collectors.toList());
 	}
 
-	/************************ Mapping Acquis  vers DTO avec FKE **************************************/
+	//Mapping Acquis  vers DTO avec FKE
 	// Acquis ==> DTO
 	@Mapping(source = "id.fkUE", target = "fkUE")
 	@Mapping(source = "id.num", target = "num")
 	AcquisDto toAcquisDto(Acquis acquis);
 
-	/************************ Mapping DTO avec FKE vers Acquis  **************************************/
+	//Mapping DTO avec FKE vers Acquis
 	// DTO==>ACQUIS
 	@Mapping(target = "id", expression = "java(new Acquis.IdAcquis(acquisDto.fkUE(), acquisDto.num()))")
 	@Mapping(target = "ue", ignore = true)
@@ -89,7 +88,7 @@ public interface UEMapper {
 	// List<Acquis> ==> List<DTO>
 	List<AcquisDto> toListAcquisDto(List<Acquis> acquis);
 
-	/************************ Mapping Acquis vers AcquisDto sans FK  (AcquisFullDto)  **************************************/
+	//Mapping Acquis vers AcquisDto sans FK  (AcquisFullDto)
 	@Mapping(source = "id.num", target = "num")
 	@Mapping(source = "acquis", target = "acquis")
 	@Mapping(source = "pourcentage", target = "pourcentage")

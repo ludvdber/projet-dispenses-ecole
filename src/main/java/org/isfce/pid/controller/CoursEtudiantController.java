@@ -24,7 +24,6 @@ import lombok.RequiredArgsConstructor;
  *
  * @author Ludovic
  */
-@SuppressWarnings("null")
 @RestController
 @RequestMapping(path = "/api/cours-etudiant/", produces = "application/json")
 @RequiredArgsConstructor

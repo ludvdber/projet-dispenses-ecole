@@ -131,7 +131,7 @@ public class AnalyseService {
 	private boolean isBetter(AnalyseDto candidate, AnalyseDto existing) {
 		if (candidate.complet() && !existing.complet()) return true;
 		if (!candidate.complet() && existing.complet()) return false;
-		// Même statut → meilleur ratio
+		// Même statut -> meilleur ratio
 		double ratioCandidate = (double) candidate.coursPresents() / candidate.coursRequis();
 		double ratioExisting = (double) existing.coursPresents() / existing.coursRequis();
 		return ratioCandidate > ratioExisting;
