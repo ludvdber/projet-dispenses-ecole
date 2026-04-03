@@ -57,7 +57,8 @@ public class SecurityConfig {
 				.oauth2ResourceServer(
 					c-> c.jwt(j ->j.jwkSetUri(keySetUri).jwtAuthenticationConverter(converter)));
 		http.authorizeHttpRequests(
-				c -> c.requestMatchers("/api/ue/sections","/api/ue/liste","/api/ue/detail/*","/api/ecole","/api/ecole/*/cours")
+				c -> c.requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html").permitAll()
+				.requestMatchers("/api/ue/sections","/api/ue/liste","/api/ue/detail/*","/api/ecole","/api/ecole/*/cours")
 				                      .hasAnyRole("ETUDIANT","ADMIN")
 				.anyRequest().authenticated());
 
