@@ -286,7 +286,7 @@ export class DossierDetailComponent {
   supprimerCours(id: number): void {
     this.dialog.open(ConfirmDialogComponent, {
       data: { title: 'Confirmation', message: 'Voulez-vous vraiment supprimer ce cours ?' }
-    }).afterClosed().subscribe(confirmed => {
+    }).afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
       if (confirmed) {
         this.coursService.deleteCours(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: () => {
@@ -348,7 +348,7 @@ export class DossierDetailComponent {
   supprimerDispense(id: number): void {
     this.dialog.open(ConfirmDialogComponent, {
       data: { title: 'Confirmation', message: 'Voulez-vous vraiment supprimer cette dispense ?' }
-    }).afterClosed().subscribe(confirmed => {
+    }).afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
       if (confirmed) {
         this.dossierService.deleteDispense(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: () => {
@@ -420,7 +420,7 @@ export class DossierDetailComponent {
   supprimerDocument(id: number): void {
     this.dialog.open(ConfirmDialogComponent, {
       data: { title: 'Confirmation', message: 'Voulez-vous vraiment supprimer ce document ?' }
-    }).afterClosed().subscribe(confirmed => {
+    }).afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
       if (confirmed) {
         this.documentService.softDeleteDocument(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: () => {

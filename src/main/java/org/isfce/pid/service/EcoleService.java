@@ -9,14 +9,14 @@ import org.isfce.pid.dto.EcoleDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Service de consultation des écoles et de leurs cours.
  * @author Ludovic
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class EcoleService {
 
