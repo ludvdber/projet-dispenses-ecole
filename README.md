@@ -1,4 +1,4 @@
-# Application de gestion des dispenses — ISFCE
+# Application de gestion des dispenses
 
 Application web permettant aux étudiants d'introduire une demande de dispense auprès de l'ISFCE sur base de cours déjà réussis dans d'autres établissements.
 
@@ -101,7 +101,3 @@ Architecture backend en couches :
 ```bash
 ./gradlew test
 ```
-
-## Auteur
-
-Ludovic Van der Berg — ISFCE 2025-2026
